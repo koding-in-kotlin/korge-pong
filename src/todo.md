@@ -36,6 +36,8 @@
 
 ## Brave New World
 
+[ ] account for size difference when colliding
+[ ] consider vector2D from this [gist](https://gist.github.com/RazorNd/3b8d3b906514bcd60055020efb8e8eb2)
 [ ] velocity-based color?
     [ ] check dataclasses
     [ ] make benchmarks, probably runtime-dependent

@@ -53,6 +53,11 @@ class GasParticle(
         circle.x = Random.nextDouble(circle.radius, sc.width - circle.radius)
         circle.y = Random.nextDouble(circle.radius, sc.height - circle.radius)
         registerUpdaters(scene.input, sc.height, sc.width)
+
+        circle.onCollision(filter = { it is Circle }) {
+            velo.x = -velo.x
+            velo.y = -velo.y
+        }
     }
 
     fun registerUpdaters(input: Input, maxHeight: Double, maxWidth: Double, addMouse: Boolean = false) {
