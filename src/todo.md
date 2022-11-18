@@ -18,18 +18,25 @@
     [x] add multiple circles
     [x] have a way to store velocities of circles of different colors
 
-## Four session: adding and removing ~balls~ particles on demand
+## Fourth session: adding and removing ~balls~ particles on demand
 
 [x] bugfix directions
 [x] have a keypress that adds a particle to the box
 [x] have a keypress that deletes a particle from the box
 
+## Fifth session: go further
 
-## Brave New World
+[ ] introduce horizontal velocity and bounce of sides
 
+[ ] maybe bounce particles from each other as well
 [ ] have a text with velocity inside the scene (some sort of UI)
 [ ] Ideal Gas route
     [ ] start colliding
+    [ ] direction as vector
+
+## Brave New World
+
+[ ] velocity-based color?
     [ ] check dataclasses
     [ ] make benchmarks, probably runtime-dependent
 [ ] Continue with one ball
@@ -37,3 +44,4 @@
     [ ] change something else like add air friction
 [ ] Two-body problem? Three-body problems?
 [ ] Make a platformer
+[ ] Add joystick

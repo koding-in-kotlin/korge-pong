@@ -26,12 +26,23 @@ val MY_COLORS = listOf(
     Colors.DARKKHAKI,
 )
 
+data class Velocity(
+    var x: Double,
+    var y: Double,
+) {
+    val speed: Double
+    get() = kotlin.math.sqrt(x * x + y * y)
+
+    fun normalize(): Velocity {
+        return Velocity(x / speed, y / speed)
+    }
+}
+
 class GasParticle(
     scene: Scene,
-    var mySpeed: Double,
+    val velo: Velocity,
 ) {
     val sc = scene.sceneContainer
-    var direction = 1
 
     val circle = sc.circle(Random.nextDouble(5.0, 25.0), stroke = Colors["#FCBF49"], strokeThickness = 3.0, fill = MY_COLORS.random()) {}
 
@@ -41,28 +52,36 @@ class GasParticle(
     init {
         circle.x = Random.nextDouble(circle.radius, sc.width - circle.radius)
         circle.y = Random.nextDouble(circle.radius, sc.height - circle.radius)
-        registerUpdaters(scene.input, sc.height)
+        registerUpdaters(scene.input, sc.height, sc.width)
     }
 
-    fun registerUpdaters(input: Input, maxHeight: Double, addMouse: Boolean = false) {
-        InputHandler(input)
-        boundaryUpdater(maxHeight)
+    fun registerUpdaters(input: Input, maxHeight: Double, maxWidth: Double, addMouse: Boolean = false) {
+        inputHandler(input)
+        positionUpdater(maxHeight, maxWidth)
         if (addMouse) mouseXUpdater(input)
     }
 
-    private fun boundaryUpdater(maxHeight: Double) {
+    private fun positionUpdater(maxHeight: Double, maxWidth: Double) {
         circle.addFixedUpdater(60.timesPerSecond) {
-            y += mySpeed * direction
+            var change = false
+            x += velo.x
+            if ((x + 2 * radius) > maxWidth) {
+                velo.x = -velo.x
+                change = true
+            } else if (x < 0) {
+                velo.x = -velo.x
+                change = true
+            }
+
+            y += velo.y
             if ((y + 2 * radius) > maxHeight) {
-                y = maxHeight - 2*radius
-                direction = -direction
-                var newColor = MY_COLORS.random()
-                while (newColor == this.color)
-                    newColor = MY_COLORS.random()
-                this.color = newColor
+                velo.y = -velo.y
+                change = true
             } else if (y < 0) {
-                y = 2*radius
-                direction = -direction
+                velo.y = -velo.y
+                change = true
+            }
+            if (change) {
                 var newColor = MY_COLORS.random()
                 while (newColor == this.color)
                     newColor = MY_COLORS.random()
@@ -78,19 +97,24 @@ class GasParticle(
         }
     }
 
-    private fun InputHandler(input: Input) {
+    private fun inputHandler(input: Input) {
+        // Maybe do something like newSpeed = sign(oldSpeed) * ( |oldSpeed| + delta)
         circle.addUpdater {
-            if (input.keys.justPressed(Key.UP))
-                mySpeed += SPEED_DELTA
-            if (input.keys.justPressed(Key.DOWN))
-                mySpeed -= SPEED_DELTA
+            if (input.keys.justPressed(Key.UP)) {
+                velo.x += SPEED_DELTA
+                velo.y += SPEED_DELTA
+            }
+            if (input.keys.justPressed(Key.DOWN)) {
+                velo.x -= SPEED_DELTA
+                velo.y -= SPEED_DELTA
+            }
 
-            if (mySpeed < DONT_GO_SLOWER_THAN) {
-                println("YOU'RE GOING TOO SLOW ${mySpeed}!!! STAPH")
-                mySpeed = DONT_GO_SLOWER_THAN
+            if (velo.speed < DONT_GO_SLOWER_THAN) {
+                velo.x = DONT_GO_SLOWER_THAN
+                velo.y = DONT_GO_SLOWER_THAN
             }
             if (input.keys.justReleased(Key.ENTER))
-                Console.info("circle coords x=$x y=$y speed=${mySpeed} c=${circle.color}")
+                Console.info("circle coords x=$x y=$y vx=${velo.x} vy=${velo.y} speed=${velo.speed} c=${circle.color}")
         }
     }
 }
@@ -106,9 +130,9 @@ class GasBox : Scene() {
     // TODO: make something nice
     override suspend fun SContainer.sceneMain() {
         // maybe doublerange here?
-        (DONT_GO_SLOWER_THAN.toInt()..3).forEach {
+        (DONT_GO_SLOWER_THAN.toInt()..5).forEach {
             println("YO $it, ${it.toDouble()}")
-            particles.add(GasParticle(this@GasBox, it.toDouble()))
+            particles.add(GasParticle(this@GasBox, Velocity(Random.nextDouble(DONT_GO_SLOWER_THAN, 30.0), it.toDouble())))
         }
         // maybe extract it
         this.addUpdater {
@@ -116,7 +140,7 @@ class GasBox : Scene() {
                 particles.add(
                     GasParticle(
                         this@GasBox,
-                        Random.nextDouble(DONT_GO_SLOWER_THAN, 30.0),
+                        Velocity(Random.nextDouble(DONT_GO_SLOWER_THAN, 30.0), Random.nextDouble(DONT_GO_SLOWER_THAN, 30.0)),
                     )
                 )
             if (input.keys.justPressed(Key.BACKSPACE)) {
