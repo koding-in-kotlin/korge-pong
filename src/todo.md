@@ -24,19 +24,26 @@
 [x] have a keypress that adds a particle to the box
 [x] have a keypress that deletes a particle from the box
 
-## Fifth session: go further
+## Fifth session: 2d gas particles movement
 
-[ ] introduce horizontal velocity and bounce of sides
+[x] introduce horizontal velocity and bounce of sides
+[x] maybe bounce particles from each other as well
+[x] Ideal Gas route
+    [x] start colliding
+    [x] direction as vector
 
-[ ] maybe bounce particles from each other as well
-[ ] have a text with velocity inside the scene (some sort of UI)
-[ ] Ideal Gas route
-    [ ] start colliding
-    [ ] direction as vector
+## Sixth session: "More" realistic collisions
+
+[x] add masses
+[x] do the elastic collision
+[x] collide with walls non-elastically
+[x] account for ~size~ mass difference when colliding
 
 ## Brave New World
 
-[ ] account for size difference when colliding
+[ ] have a text with velocity inside the scene (some sort of UI)
+[ ] Fix annoying color palette
+[ ] Fix the bug with speedup
 [ ] consider vector2D from this [gist](https://gist.github.com/RazorNd/3b8d3b906514bcd60055020efb8e8eb2)
 [ ] velocity-based color?
     [ ] check dataclasses

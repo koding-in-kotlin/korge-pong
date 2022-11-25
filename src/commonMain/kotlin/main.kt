@@ -6,6 +6,7 @@ import com.soywiz.korge.input.*
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
+import kotlin.math.*
 import kotlin.random.*
 
 suspend fun main() = Korge(title = "Ideal gas here we go", width = 768, height = 768, bgcolor = Colors["#003049"]) {
@@ -26,6 +27,8 @@ val MY_COLORS = listOf(
     Colors.DARKKHAKI,
 )
 
+val CIRCLE_TO_PARTICLE = hashMapOf<Circle, GasParticle>()
+
 data class Velocity(
     var x: Double,
     var y: Double,
@@ -36,28 +39,57 @@ data class Velocity(
     fun normalize(): Velocity {
         return Velocity(x / speed, y / speed)
     }
+
+    operator fun times(other: Double): Velocity {
+        return Velocity(x * other, y * other)
+    }
+
+    operator fun plus(other: Velocity): Velocity {
+        return Velocity(x + other.x, y + other.y)
+    }
 }
 
 class GasParticle(
     scene: Scene,
-    val velo: Velocity,
+    var velo: Velocity,
+    startX: Double = 100.0,
+    startY: Double = 100.0,
+    var mass: Double,
 ) {
     val sc = scene.sceneContainer
-
-    val circle = sc.circle(Random.nextDouble(5.0, 25.0), stroke = Colors["#FCBF49"], strokeThickness = 3.0, fill = MY_COLORS.random()) {}
+    val circle = sc.circle(17.0, stroke = Colors["#FCBF49"], strokeThickness = 3.0, fill = MY_COLORS.random()) {}
 
     fun die() {
         sc.removeChild(circle)
     }
     init {
-        circle.x = Random.nextDouble(circle.radius, sc.width - circle.radius)
-        circle.y = Random.nextDouble(circle.radius, sc.height - circle.radius)
+//        circle.x = Random.nextDouble(circle.radius, sc.width - circle.radius)
+//        circle.y = Random.nextDouble(circle.radius, sc.height - circle.radius)
+        circle.x = startX
+        circle.y = startY
         registerUpdaters(scene.input, sc.height, sc.width)
+        CIRCLE_TO_PARTICLE[circle] = this
 
-        circle.onCollision(filter = { it is Circle }) {
-            velo.x = -velo.x
-            velo.y = -velo.y
+        circle.onCollision(filter = { it is Circle }, kind = CollisionKind.SHAPE) {
+            asIwantItToBeRenamed(it)
         }
+    }
+
+    private fun View.asIwantItToBeRenamed(it: View) {
+        val me = CIRCLE_TO_PARTICLE[this]!!
+        val other = CIRCLE_TO_PARTICLE[it]!!
+
+        val u1 = me.velo
+        val u2 = other.velo
+
+        val M = (me.mass + other.mass)
+        val mu11 = (me.mass - other.mass) / M
+        val mu12 = 2 * other.mass / M
+        val mu21 = 2 * me.mass / M
+        val mu22 = (other.mass - me.mass) / M
+
+        me.velo = u1 * mu11 + u2 * mu12
+        other.velo = u1 * mu21 + u2 * mu22
     }
 
     fun registerUpdaters(input: Input, maxHeight: Double, maxWidth: Double, addMouse: Boolean = false) {
@@ -91,6 +123,7 @@ class GasParticle(
                 while (newColor == this.color)
                     newColor = MY_COLORS.random()
                 this.color = newColor
+                velo = velo * 0.95
             }
         }
     }
@@ -114,10 +147,6 @@ class GasParticle(
                 velo.y -= SPEED_DELTA
             }
 
-            if (velo.speed < DONT_GO_SLOWER_THAN) {
-                velo.x = DONT_GO_SLOWER_THAN
-                velo.y = DONT_GO_SLOWER_THAN
-            }
             if (input.keys.justReleased(Key.ENTER))
                 Console.info("circle coords x=$x y=$y vx=${velo.x} vy=${velo.y} speed=${velo.speed} c=${circle.color}")
         }
@@ -135,19 +164,28 @@ class GasBox : Scene() {
     // TODO: make something nice
     override suspend fun SContainer.sceneMain() {
         // maybe doublerange here?
-        (DONT_GO_SLOWER_THAN.toInt()..5).forEach {
-            println("YO $it, ${it.toDouble()}")
-            particles.add(GasParticle(this@GasBox, Velocity(Random.nextDouble(DONT_GO_SLOWER_THAN, 30.0), it.toDouble())))
+        (DONT_GO_SLOWER_THAN.toInt()..2).forEach {
+            val v = Velocity(
+                x=Random.nextDouble(DONT_GO_SLOWER_THAN, 20.0),
+                y=Random.nextDouble(DONT_GO_SLOWER_THAN, 20.0),
+            )
+            particles.add(
+                GasParticle(this@GasBox, v, mass=it.toDouble())
+            )
         }
+//        particles.add(GasParticle(this@GasBox, Velocity(5.0, 10.0), 200.0, 200.0))
+//        particles.add(GasParticle(this@GasBox, Velocity(1.0, 3.0), 300.0, 200.0))
         // maybe extract it
         this.addUpdater {
-            if (input.keys.justPressed(Key.SPACE))
-                particles.add(
-                    GasParticle(
-                        this@GasBox,
-                        Velocity(Random.nextDouble(DONT_GO_SLOWER_THAN, 30.0), Random.nextDouble(DONT_GO_SLOWER_THAN, 30.0)),
-                    )
+            if (input.keys.justPressed(Key.SPACE)) {
+                val v = Velocity(
+                    x=Random.nextDouble(DONT_GO_SLOWER_THAN, 30.0),
+                    y=Random.nextDouble(DONT_GO_SLOWER_THAN, 30.0),
                 )
+                particles.add(
+                    GasParticle(this@GasBox, v, mass = Random.nextDouble(10.0, 20.0))
+                )
+            }
             if (input.keys.justPressed(Key.BACKSPACE)) {
                 particles.removeLastOrNull()?.die()
             }
