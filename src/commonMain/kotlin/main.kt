@@ -5,7 +5,11 @@ import com.soywiz.korge.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.view.*
+import com.soywiz.korge.view.Circle
 import com.soywiz.korim.color.*
+import com.soywiz.korim.text.*
+import com.soywiz.korio.lang.*
+import com.soywiz.korma.geom.*
 import kotlin.random.*
 
 suspend fun main() = Korge(title = "Ideal gas here we go", width = 768, height = 768, bgcolor = Colors["#003049"]) {
@@ -71,8 +75,11 @@ class GasParticle(
     val sc = scene.sceneContainer
     val circle = sc.circle(mass, stroke = Colors["#FCBF49"], strokeThickness = 3.0, fill = MY_COLORS.random()) {}
 
+    val energy get() = mass * velo.length2 / 2.0
+
     fun die() {
         sc.removeChild(circle)
+        CIRCLE_TO_PARTICLE.remove(circle)
     }
 
     init {
@@ -88,6 +95,7 @@ class GasParticle(
     }
 
     private fun View.handleCollisions(it: View) {
+        // see https://en.wikipedia.org/wiki/Elastic_collision#Two-dimensional_collision_with_two_moving_objects
         val me = CIRCLE_TO_PARTICLE[this]!!
         val other = CIRCLE_TO_PARTICLE[it]!!
 
@@ -132,11 +140,12 @@ class GasParticle(
                 change = true
             }
             if (change) {
-                var newColor = MY_COLORS.random()
-                while (newColor == this.color)
-                    newColor = MY_COLORS.random()
-                this.color = newColor
-                // velo = velo * 0.95
+                // hmmmm
+//                var newColor = MY_COLORS.random()
+//                while (newColor == this.color)
+//                    newColor = MY_COLORS.random()
+//                this.color = newColor
+                velo *= 0.95
             }
         }
     }
@@ -167,9 +176,16 @@ class GasParticle(
 }
 
 class GasBox : Scene() {
+    lateinit var textView : Text
     override suspend fun SContainer.sceneInit() {
         println("Hello there, humans!")
         println(listOf(Colors.PINK, Colors.AQUA, Colors.DARKRED, Colors.DARKKHAKI)[0])
+
+        textView = text("It's hot!", 32.0) {
+            x = 100.0
+            y = 100.0
+            alignment = TextAlignment.LEFT
+        }
     }
 
     val particles = arrayListOf<GasParticle>()
@@ -201,6 +217,9 @@ class GasBox : Scene() {
                 particles.removeLastOrNull()?.die()
             }
 
+            val energy = particles.sumOf { it.energy }.toInt()
+
+            textView.text = "N = ${particles.size}\nEnergy = ${energy}"
         }
     }
 }

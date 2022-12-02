@@ -42,10 +42,10 @@
 ## Seventh session: FIX COLLISIONS FOR GOOOOOD
 
 [x] fix collisions to make them account for Gas Particle centers
+[x] have a text with energy inside the scene (some sort of UI)
 [ ] Don't get stuck in the walls
 [ ] Fix annoying color palette
 [ ] Fix the bug with speedup
-[ ] have a text with "temperature" inside the scene (some sort of UI)
 
 ## Brave New World
 
