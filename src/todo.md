@@ -39,11 +39,16 @@
 [x] collide with walls non-elastically
 [x] account for ~size~ mass difference when colliding
 
-## Brave New World
+## Seventh session: FIX COLLISIONS FOR GOOOOOD
 
-[ ] have a text with velocity inside the scene (some sort of UI)
+[x] fix collisions to make them account for Gas Particle centers
+[ ] Don't get stuck in the walls
 [ ] Fix annoying color palette
 [ ] Fix the bug with speedup
+[ ] have a text with "temperature" inside the scene (some sort of UI)
+
+## Brave New World
+
 [ ] consider vector2D from this [gist](https://gist.github.com/RazorNd/3b8d3b906514bcd60055020efb8e8eb2)
 [ ] velocity-based color?
     [ ] check dataclasses
