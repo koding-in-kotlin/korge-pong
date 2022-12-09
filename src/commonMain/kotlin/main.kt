@@ -1,16 +1,15 @@
-import com.soywiz.klock.*
-import com.soywiz.klogger.*
-import com.soywiz.korev.*
-import com.soywiz.korge.*
-import com.soywiz.korge.input.*
-import com.soywiz.korge.scene.*
+import com.soywiz.klock.timesPerSecond
+import com.soywiz.klogger.Console
+import com.soywiz.korev.Key
+import com.soywiz.korge.Korge
+import com.soywiz.korge.input.Input
+import com.soywiz.korge.scene.Scene
+import com.soywiz.korge.scene.sceneContainer
 import com.soywiz.korge.view.*
-import com.soywiz.korge.view.Circle
-import com.soywiz.korim.color.*
-import com.soywiz.korim.text.*
-import com.soywiz.korio.lang.*
-import com.soywiz.korma.geom.*
-import kotlin.random.*
+import com.soywiz.korim.color.Colors
+import com.soywiz.korim.text.TextAlignment
+import kotlin.collections.set
+import kotlin.random.Random
 
 suspend fun main() = Korge(title = "Ideal gas here we go", width = 768, height = 768, bgcolor = Colors["#003049"]) {
     val sceneContainer = sceneContainer()
@@ -58,6 +57,10 @@ data class Vector2(
         return Vector2(x - other.x, y - other.y)
     }
 
+    operator fun Vector2.unaryMinus(): Vector2 {
+        return Vector2(-x, -y)
+    }
+
     fun dot(other: Vector2): Double {
         return x * other.x + y * other.y
     }
@@ -71,9 +74,12 @@ class GasParticle(
     scene: Scene,
     var velo: Vector2,
     var mass: Double,
+    defaultX: Double? = null,
+    defaultY: Double? = null
 ) {
     val sc = scene.sceneContainer
-    val circle = sc.circle(mass, stroke = Colors["#FCBF49"], strokeThickness = 3.0, fill = MY_COLORS.random()) {}
+
+    val circle = sc.circle(mass, stroke = Colors["#FCBF49"], strokeThickness = 3.0, fill = MY_COLORS.random())
 
     val energy get() = mass * velo.length2 / 2.0
 
@@ -83,8 +89,9 @@ class GasParticle(
     }
 
     init {
-        circle.x = Random.nextDouble(circle.radius, sc.width - circle.radius)
-        circle.y = Random.nextDouble(circle.radius, sc.height - circle.radius)
+        circle.x = defaultX ?: Random.nextDouble(circle.radius, sc.width - circle.radius)
+        circle.y = defaultY ?: Random.nextDouble(circle.radius, sc.height - circle.radius)
+        circle.anchor(.5, .5)
 
         registerUpdaters(scene.input, sc.height, sc.width)
         CIRCLE_TO_PARTICLE[circle] = this
@@ -98,7 +105,13 @@ class GasParticle(
         // see https://en.wikipedia.org/wiki/Elastic_collision#Two-dimensional_collision_with_two_moving_objects
         val me = CIRCLE_TO_PARTICLE[this]!!
         val other = CIRCLE_TO_PARTICLE[it]!!
-
+        val distance = kotlin.math.hypot(x - it.x, y - it.y)
+        val neededDistance = me.circle.radius + other.circle.radius
+        if (distance < neededDistance) {
+            val (dx, dy) = Vector2(it.x - x, it.y - y).normalize() * (neededDistance - distance)
+            it.x += dx
+            it.y += dy
+        }
         val u1 = me.velo
         val u2 = other.velo
         val x1 = Vector2(this.x, this.y)
@@ -117,25 +130,36 @@ class GasParticle(
         inputHandler(input)
         positionUpdater(maxHeight, maxWidth)
         if (addMouse) mouseXUpdater(input)
+        wallDestructingUpdater()
+    }
+
+    private fun wallDestructingUpdater() {
+        circle.addUpdater {
+        }
     }
 
     private fun positionUpdater(maxHeight: Double, maxWidth: Double) {
         circle.addFixedUpdater(60.timesPerSecond) {
             var change = false
             x += velo.x
-            if ((x + 2 * radius) > maxWidth) {
+
+            if ((x + radius) > maxWidth) {
+                x = maxWidth - radius
                 velo.x = -velo.x
                 change = true
-            } else if (x < 0) {
+            } else if (x < radius) {
+                x = radius
                 velo.x = -velo.x
                 change = true
             }
 
             y += velo.y
-            if ((y + 2 * radius) > maxHeight) {
+            if ((y + radius) > maxHeight) {
+                y = maxHeight - radius
                 velo.y = -velo.y
                 change = true
-            } else if (y < 0) {
+            } else if (y < radius) {
+                y = radius
                 velo.y = -velo.y
                 change = true
             }
@@ -176,7 +200,7 @@ class GasParticle(
 }
 
 class GasBox : Scene() {
-    lateinit var textView : Text
+    lateinit var textView: Text
     override suspend fun SContainer.sceneInit() {
         println("Hello there, humans!")
         println(listOf(Colors.PINK, Colors.AQUA, Colors.DARKRED, Colors.DARKKHAKI)[0])
@@ -210,7 +234,7 @@ class GasBox : Scene() {
                     y = Random.nextDouble(DONT_GO_SLOWER_THAN, 30.0),
                 )
                 particles.add(
-                    GasParticle(this@GasBox, v, mass = Random.nextDouble(10.0, 20.0))
+                    GasParticle(this@GasBox, v, mass = 60.0)
                 )
             }
             if (input.keys.justPressed(Key.BACKSPACE)) {
@@ -219,7 +243,8 @@ class GasBox : Scene() {
 
             val energy = particles.sumOf { it.energy }.toInt()
 
-            textView.text = "N = ${particles.size}\nEnergy = ${energy}"
+            textView.text = """N = ${particles.size}
+Energy = $energy"""
         }
     }
 }
