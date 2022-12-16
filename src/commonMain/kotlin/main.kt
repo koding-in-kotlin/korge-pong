@@ -6,12 +6,17 @@ import com.soywiz.korge.input.Input
 import com.soywiz.korge.scene.Scene
 import com.soywiz.korge.scene.sceneContainer
 import com.soywiz.korge.view.*
+import com.soywiz.korge.view.Circle
+import com.soywiz.korge.view.Line
 import com.soywiz.korim.color.Colors
 import com.soywiz.korim.text.TextAlignment
+import com.soywiz.korio.lang.Cancellable
+import com.soywiz.korio.lang.cancel
+import com.soywiz.korma.geom.*
 import kotlin.collections.set
 import kotlin.random.Random
 
-suspend fun main() = Korge(title = "Ideal gas here we go", width = 768, height = 768, bgcolor = Colors["#003049"]) {
+suspend fun main() = Korge(title = "Ideal gas here we go", width = 768, height = 768, bgcolor = Colors["#000052"]) {
     val sceneContainer = sceneContainer()
 
     sceneContainer.changeTo({ GasBox() })
@@ -20,21 +25,19 @@ suspend fun main() = Korge(title = "Ideal gas here we go", width = 768, height =
 const val DONT_GO_SLOWER_THAN = 1.0
 const val SPEED_DELTA = 2
 val MY_COLORS = listOf(
-    Colors.HOTPINK,
-    Colors.HOTPINK,
-    Colors.HOTPINK,
-    Colors["#F77F00"],
-    Colors.AQUA,
-    Colors.DARKRED,
-    Colors.DARKKHAKI,
+    Colors["#D5DFE5"],
+    Colors["#C9B1BD"],
+    Colors["#7F9172"],
+    Colors["#8B9B7F"],
+    Colors["#96A48B"],
 )
 
 val CIRCLE_TO_PARTICLE = hashMapOf<Circle, GasParticle>()
 
 data class Vector2(
-    var x: Double,
-    var y: Double,
-) {
+    override var x: Double,
+    override var y: Double,
+) : IPoint {
     val length: Double
         get() = kotlin.math.sqrt(length2)
 
@@ -88,10 +91,12 @@ class GasParticle(
         CIRCLE_TO_PARTICLE.remove(circle)
     }
 
+    private var line: Line
+
     init {
         circle.x = defaultX ?: Random.nextDouble(circle.radius, sc.width - circle.radius)
         circle.y = defaultY ?: Random.nextDouble(circle.radius, sc.height - circle.radius)
-        circle.addChild(Line(0.0,0.0,30.0,30.0))
+        line = circle.line(.0,.0,.0,.0,Colors["#DE3C4B"])
         circle.anchor(.5, .5)
 
         registerUpdaters(scene.input, sc.height, sc.width)
@@ -139,40 +144,46 @@ class GasParticle(
         }
     }
 
+    private lateinit var positionUpdater: Cancellable
+
     private fun positionUpdater(maxHeight: Double, maxWidth: Double) {
-        circle.addFixedUpdater(60.timesPerSecond) {
-            var change = false
-            x += velo.x
+        positionUpdater = circle.addFixedUpdater(60.timesPerSecond, updatable = tick(maxWidth, maxHeight))
+    }
 
-            if ((x + radius) > maxWidth) {
-                x = maxWidth - radius
-                velo.x = -velo.x
-                change = true
-            } else if (x < radius) {
-                x = radius
-                velo.x = -velo.x
-                change = true
-            }
+    private fun tick(maxWidth: Double, maxHeight: Double): Circle.() -> Unit = {
+        var change = false
+        x += velo.x
 
-            y += velo.y
-            if ((y + radius) > maxHeight) {
-                y = maxHeight - radius
-                velo.y = -velo.y
-                change = true
-            } else if (y < radius) {
-                y = radius
-                velo.y = -velo.y
-                change = true
-            }
-            if (change) {
-                // hmmmm
-//                var newColor = MY_COLORS.random()
-//                while (newColor == this.color)
-//                    newColor = MY_COLORS.random()
-//                this.color = newColor
-                velo *= 0.95
-            }
+        if ((x + radius) > maxWidth) {
+            x = maxWidth - radius
+            velo.x = -velo.x
+            change = true
+        } else if (x < radius) {
+            x = radius
+            velo.x = -velo.x
+            change = true
         }
+
+        y += velo.y
+        if ((y + radius) > maxHeight) {
+            y = maxHeight - radius
+            velo.y = -velo.y
+            change = true
+        } else if (y < radius) {
+            y = radius
+            velo.y = -velo.y
+            change = true
+        }
+        if (change) {
+            // hmmmm
+            //                var newColor = MY_COLORS.random()
+            //                while (newColor == this.color)
+            //                    newColor = MY_COLORS.random()
+            //                this.color = newColor
+            velo *= 0.95
+        }
+        line.x2 = velo.x * 10
+        line.y2 = velo.y * 10
     }
 
     private fun mouseXUpdater(input: Input) {
@@ -188,14 +199,13 @@ class GasParticle(
             if (input.keys.justPressed(Key.UP)) {
                 velo.x += SPEED_DELTA
                 velo.y += SPEED_DELTA
-            }
-            if (input.keys.justPressed(Key.DOWN)) {
+            } else if (input.keys.justPressed(Key.DOWN)) {
                 velo.x -= SPEED_DELTA
                 velo.y -= SPEED_DELTA
-            }
-
-            if (input.keys.justReleased(Key.ENTER))
+            } else if (input.keys.justReleased(Key.ENTER))
                 Console.info("circle coords x=$x y=$y vx=${velo.x} vy=${velo.y} speed=${velo.length} c=${circle.color}")
+            else if (input.keys.justPressed(Key.P)) positionUpdater.cancel()
+            else if (input.keys.justPressed(Key.R)) positionUpdater(sc.height, sc.width)
         }
     }
 }
@@ -213,7 +223,7 @@ class GasBox : Scene() {
         }
     }
 
-    val particles = arrayListOf<GasParticle>()
+    private val particles = arrayListOf<GasParticle>()
 
     // TODO: make something nice
     override suspend fun SContainer.sceneMain() {
