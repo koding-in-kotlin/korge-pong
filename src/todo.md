@@ -43,9 +43,14 @@
 
 - [x] fix collisions to make them account for Gas Particle centers
 - [x] have a text with energy inside the scene (some sort of UI)
-- [ ] Don't get stuck in the walls
-- [ ] Fix annoying color palette
-- [ ] Fix the bug with speedup
+- [x] Don't get stuck in the walls
+- [x] Fix annoying color palette
+- [x] Fix the bug with speedup
+
+## Ninth session:
+
+- [ ] Attach speed vectors to particles
+- [ ] Show them on click
 
 ## Brave New World
 

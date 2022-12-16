@@ -72,14 +72,14 @@ operator fun Double.times(other: Vector2): Vector2 {
 
 class GasParticle(
     scene: Scene,
-    var velo: Vector2,
+    private var velo: Vector2,
     var mass: Double,
     defaultX: Double? = null,
     defaultY: Double? = null
 ) {
-    val sc = scene.sceneContainer
+    private val sc = scene.sceneContainer
 
-    val circle = sc.circle(mass, stroke = Colors["#FCBF49"], strokeThickness = 3.0, fill = MY_COLORS.random())
+    private val circle = sc.circle(mass, stroke = Colors["#FCBF49"], strokeThickness = 3.0, fill = MY_COLORS.random())
 
     val energy get() = mass * velo.length2 / 2.0
 
@@ -91,6 +91,7 @@ class GasParticle(
     init {
         circle.x = defaultX ?: Random.nextDouble(circle.radius, sc.width - circle.radius)
         circle.y = defaultY ?: Random.nextDouble(circle.radius, sc.height - circle.radius)
+        circle.addChild(Line(0.0,0.0,30.0,30.0))
         circle.anchor(.5, .5)
 
         registerUpdaters(scene.input, sc.height, sc.width)
