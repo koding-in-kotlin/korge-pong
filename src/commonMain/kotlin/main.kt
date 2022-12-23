@@ -1,20 +1,18 @@
-import com.soywiz.klock.timesPerSecond
-import com.soywiz.klogger.Console
-import com.soywiz.korev.Key
-import com.soywiz.korge.Korge
-import com.soywiz.korge.input.Input
-import com.soywiz.korge.scene.Scene
-import com.soywiz.korge.scene.sceneContainer
+import com.soywiz.klock.*
+import com.soywiz.klogger.*
+import com.soywiz.korev.*
+import com.soywiz.korge.*
+import com.soywiz.korge.input.*
+import com.soywiz.korge.scene.*
 import com.soywiz.korge.view.*
 import com.soywiz.korge.view.Circle
 import com.soywiz.korge.view.Line
-import com.soywiz.korim.color.Colors
-import com.soywiz.korim.text.TextAlignment
-import com.soywiz.korio.lang.Cancellable
-import com.soywiz.korio.lang.cancel
+import com.soywiz.korim.color.*
+import com.soywiz.korim.text.*
+import com.soywiz.korio.lang.*
 import com.soywiz.korma.geom.*
 import kotlin.collections.set
-import kotlin.random.Random
+import kotlin.random.*
 
 suspend fun main() = Korge(title = "Ideal gas here we go", width = 768, height = 768, bgcolor = Colors["#000052"]) {
     val sceneContainer = sceneContainer()
@@ -73,16 +71,18 @@ operator fun Double.times(other: Vector2): Vector2 {
     return other * this
 }
 
+
 class GasParticle(
     scene: Scene,
-    private var velo: Vector2,
+    var velo: Vector2,
     var mass: Double,
     defaultX: Double? = null,
     defaultY: Double? = null
 ) {
     private val sc = scene.sceneContainer
+    internal var selected = false
 
-    private val circle = sc.circle(mass, stroke = Colors["#FCBF49"], strokeThickness = 3.0, fill = MY_COLORS.random())
+    internal val circle = sc.circle(mass, strokeThickness = 3.0, fill = MY_COLORS.random())
 
     val energy get() = mass * velo.length2 / 2.0
 
@@ -96,14 +96,18 @@ class GasParticle(
     init {
         circle.x = defaultX ?: Random.nextDouble(circle.radius, sc.width - circle.radius)
         circle.y = defaultY ?: Random.nextDouble(circle.radius, sc.height - circle.radius)
-        line = circle.line(.0,.0,.0,.0,Colors["#DE3C4B"])
-        circle.anchor(.5, .5)
+        line = circle.line(.0, .0, .0, .0, Colors["#DE3C4B"])
+//        circle.anchor(.5, .5)
 
         registerUpdaters(scene.input, sc.height, sc.width)
         CIRCLE_TO_PARTICLE[circle] = this
 
         circle.onCollision(filter = { it is Circle }, kind = CollisionKind.SHAPE) {
             handleCollisions(it)
+        }
+
+        circle.onCollision(filter = { it is Circle && it.radius > 100.0 }, kind = CollisionKind.SHAPE) {
+            (this as Circle).fill = Colors.RED
         }
     }
 
@@ -113,15 +117,15 @@ class GasParticle(
         val other = CIRCLE_TO_PARTICLE[it]!!
         val distance = kotlin.math.hypot(x - it.x, y - it.y)
         val neededDistance = me.circle.radius + other.circle.radius
-        if (distance < neededDistance) {
-            val (dx, dy) = Vector2(it.x - x, it.y - y).normalize() * (neededDistance - distance)
-            it.x += dx
-            it.y += dy
-        }
+//        if (distance < neededDistance) {
+//            val (dx, dy) = Vector2(it.x - x, it.y - y).normalize() * (neededDistance - distance)
+//            it.x += dx
+//            it.y += dy
+//        }
         val u1 = me.velo
         val u2 = other.velo
-        val x1 = Vector2(this.x, this.y)
-        val x2 = Vector2(it.x, it.y)
+        val x1 = Vector2(this.x + me.circle.radius, this.y + me.circle.radius)
+        val x2 = Vector2(it.x + other.circle.radius, it.y + other.circle.radius)
 
         val mu1 = 2 * other.mass / (me.mass + other.mass)
         val mu2 = 2 * me.mass / (me.mass + other.mass)
@@ -194,18 +198,28 @@ class GasParticle(
     }
 
     private fun inputHandler(input: Input) {
+        circle.onClick {
+            if (input.keys.ctrl) {
+                selected = true
+                circle.fill = Colors.TRANSPARENT_BLACK
+            }
+        }
         // Maybe do something like newSpeed = sign(oldSpeed) * ( |oldSpeed| + delta)
         circle.addUpdater {
-            if (input.keys.justPressed(Key.UP)) {
-                velo.x += SPEED_DELTA
-                velo.y += SPEED_DELTA
-            } else if (input.keys.justPressed(Key.DOWN)) {
-                velo.x -= SPEED_DELTA
-                velo.y -= SPEED_DELTA
-            } else if (input.keys.justReleased(Key.ENTER))
-                Console.info("circle coords x=$x y=$y vx=${velo.x} vy=${velo.y} speed=${velo.length} c=${circle.color}")
-            else if (input.keys.justPressed(Key.P)) positionUpdater.cancel()
-            else if (input.keys.justPressed(Key.R)) positionUpdater(sc.height, sc.width)
+            when {
+                input.keys.justPressed(Key.UP) -> {
+                    velo.x += SPEED_DELTA
+                    velo.y += SPEED_DELTA
+                }
+
+                input.keys.justPressed(Key.DOWN) -> {
+                    velo.x -= SPEED_DELTA
+                    velo.y -= SPEED_DELTA
+                }
+
+                input.keys.justPressed(Key.P) -> positionUpdater.cancel()
+                input.keys.justPressed(Key.R) -> positionUpdater(sc.height, sc.width)
+            }
         }
     }
 }
@@ -227,29 +241,50 @@ class GasBox : Scene() {
 
     // TODO: make something nice
     override suspend fun SContainer.sceneMain() {
+
         // maybe doublerange here?
-        (DONT_GO_SLOWER_THAN.toInt()..20).forEach {
+        repeat(20) {
             val v = Vector2(
                 x = Random.nextDouble(DONT_GO_SLOWER_THAN, 10.0),
                 y = Random.nextDouble(DONT_GO_SLOWER_THAN, 10.0),
             )
             particles.add(
-                GasParticle(this@GasBox, v, mass = it.toDouble())
+                GasParticle(this@GasBox, v, mass = 7.0)
             )
         }
+/*
+        particles.add(GasParticle(this@GasBox, Vector2(.0, .0), 300.0, 100.0, 100.0).apply {
+            circle.fill = Colors.TRANSPARENT_BLACK
+        })
+*/
+        /*
+                (100..700 step 100).forEach { x ->
+                    (100..700 step 100).forEach { y ->
+                        particles.add(GasParticle(this@GasBox, Vector2(.0, .0), 10.0, x.toDouble(), y.toDouble()))
+                    }
+                }
+        */
+
         // maybe extract it
         this.addUpdater {
-            if (input.keys.justPressed(Key.SPACE)) {
-                val v = Vector2(
-                    x = Random.nextDouble(DONT_GO_SLOWER_THAN, 30.0),
-                    y = Random.nextDouble(DONT_GO_SLOWER_THAN, 30.0),
-                )
-                particles.add(
-                    GasParticle(this@GasBox, v, mass = 60.0)
-                )
-            }
-            if (input.keys.justPressed(Key.BACKSPACE)) {
-                particles.removeLastOrNull()?.die()
+            when {
+                input.keys.justPressed(Key.SPACE) -> {
+                    val v = Vector2(
+                        x = Random.nextDouble(DONT_GO_SLOWER_THAN, 30.0),
+                        y = Random.nextDouble(DONT_GO_SLOWER_THAN, 30.0),
+                    )
+                    particles.add(
+                        GasParticle(this@GasBox, v, mass = 60.0)
+                    )
+                }
+
+                input.keys.justPressed(Key.BACKSPACE) -> particles.removeLastOrNull()?.die()
+                input.keys.justPressed(Key.ENTER) ->
+                    particles
+                        .filter { it.selected }
+                        .forEach {
+                            Console.info("Velocity: ${it.velo}, position: ${it.circle.pos}")
+                        }
             }
 
             val energy = particles.sumOf { it.energy }.toInt()

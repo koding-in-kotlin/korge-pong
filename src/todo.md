@@ -49,8 +49,12 @@
 
 ## Ninth session:
 
-- [ ] Attach speed vectors to particles
+- [x] Attach speed vectors to particles
+
+## Next
 - [ ] Show them on click
+- [ ] Replace Line with Rect
+- [ ] Debug weird collisions
 
 ## Brave New World
 

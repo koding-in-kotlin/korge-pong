@@ -5,7 +5,7 @@ plugins {
 }
 
 korge {
-	id = "com.sample.demo"
+	id = "com.github.cra"
 
 // To enable all targets at once
 
