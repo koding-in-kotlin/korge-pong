@@ -14,7 +14,9 @@ class GasParticle(
     var velo: Vector2,
     var mass: Double,
     defaultX: Double? = null,
-    defaultY: Double? = null
+    defaultY: Double? = null,
+    static: Boolean = false,
+    val disableCollision : Boolean = false
 ) {
     private val sc = scene.sceneContainer
     internal var selected = false
@@ -34,9 +36,9 @@ class GasParticle(
         circle.x = defaultX ?: Random.nextDouble(circle.radius, sc.width - circle.radius)
         circle.y = defaultY ?: Random.nextDouble(circle.radius, sc.height - circle.radius)
         line = circle.line(.0, .0, .0, .0, Colors["#DE3C4B"])
-//        circle.anchor(.5, .5)
+        circle.anchor(.5, .5)
 
-        registerUpdaters(scene.input, sc.height, sc.width)
+        registerUpdaters(scene.input, sc.height, sc.width, static = static)
         CIRCLE_TO_PARTICLE[circle] = this
 
         circle.onCollision(filter = { it is Circle }, kind = CollisionKind.SHAPE) {
@@ -49,6 +51,8 @@ class GasParticle(
     }
 
     private fun View.handleCollisions(it: View) {
+        if (disableCollision) return
+
         // see https://en.wikipedia.org/wiki/Elastic_collision#Two-dimensional_collision_with_two_moving_objects
         val me = CIRCLE_TO_PARTICLE[this]!!
         val other = CIRCLE_TO_PARTICLE[it]!!
@@ -73,9 +77,9 @@ class GasParticle(
         other.velo = u2 - mu2 * f2 * (x2 - x1)
     }
 
-    fun registerUpdaters(input: Input, maxHeight: Double, maxWidth: Double, addMouse: Boolean = false) {
+    fun registerUpdaters(input: Input, maxHeight: Double, maxWidth: Double, addMouse: Boolean = false, static: Boolean = false) {
         inputHandler(input)
-        positionUpdater(maxHeight, maxWidth)
+        if (!static) positionUpdater(maxHeight, maxWidth)
         if (addMouse) mouseXUpdater(input)
         wallDestructingUpdater()
     }
