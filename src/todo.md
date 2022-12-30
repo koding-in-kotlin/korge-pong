@@ -58,13 +58,12 @@
 
 ## Brave New World
 
-- [ ] consider vector2D from this [gist](https://gist.github.com/RazorNd/3b8d3b906514bcd60055020efb8e8eb2)
 - [ ] velocity-based color?
-    - [ ] check dataclasses
-    - [ ] make benchmarks, probably runtime-dependent
+   - [ ] check dataclasses
+   - [ ] make benchmarks, probably runtime-dependent
 - [ ] Continue with one ball
-    - [ ] add gravity or some sort of acceleration
-    - [ ] change something else like add air friction
+   - [ ] add gravity or some sort of acceleration
+   - [ ] change something else like add air friction
 - [ ] Two-body problem? Three-body problems?
 - [ ] Make a platformer
 - [ ] Add joystick
