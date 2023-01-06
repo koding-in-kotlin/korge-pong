@@ -1,10 +1,8 @@
+import com.soywiz.klock.*
 import com.soywiz.klogger.Console
 import com.soywiz.korev.Key
 import com.soywiz.korge.scene.Scene
-import com.soywiz.korge.view.SContainer
-import com.soywiz.korge.view.Text
-import com.soywiz.korge.view.addUpdater
-import com.soywiz.korge.view.text
+import com.soywiz.korge.view.*
 import com.soywiz.korim.color.Colors
 import com.soywiz.korim.text.TextAlignment
 import com.soywiz.korio.async.launchImmediately
@@ -37,15 +35,28 @@ class GasBox : Scene() {
     override suspend fun SContainer.sceneMain() {
 
         // maybe doublerange here?
-        repeat(20) {
+        repeat(3) {
             val v = Vector2(
                 x = Random.nextDouble(DONT_GO_SLOWER_THAN, 10.0),
                 y = Random.nextDouble(DONT_GO_SLOWER_THAN, 10.0),
             )
             particles.add(
-                GasParticle(this@GasBox, v, mass = 7.0)
+                GasParticle(this@GasBox, v, mass = 50.0)
             )
         }
+
+        particles.windowed(2).forEach {
+            val (lhs, rhs) = it
+            lhs.circle.fill = Colors.TRANSPARENT_BLACK
+            rhs.circle.fill = Colors.TRANSPARENT_BLACK
+            line(lhs.x, lhs.y, rhs.x, rhs.y).addFixedUpdater(60.timesPerSecond){
+                x1 = lhs.x + lhs.mass
+                y1 = lhs.y + lhs.mass
+                x2 = rhs.x + rhs.mass
+                y2 = rhs.y + rhs.mass
+            }
+        }
+
 /*
         particles.add(GasParticle(this@GasBox, Vector2(.0, .0), 300.0, 100.0, 100.0).apply {
             circle.fill = Colors.TRANSPARENT_BLACK

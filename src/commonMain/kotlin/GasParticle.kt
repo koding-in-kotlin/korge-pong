@@ -32,21 +32,27 @@ class GasParticle(
 
     private var line: Line
 
+    val x get() = circle.x
+    val y get() = circle.y
+
     init {
         circle.x = defaultX ?: Random.nextDouble(circle.radius, sc.width - circle.radius)
         circle.y = defaultY ?: Random.nextDouble(circle.radius, sc.height - circle.radius)
+        circle.roundRect(
+            2.0 * circle.radius,
+            2.0 * circle.radius,
+            1.0,
+            fill = Colors.TRANSPARENT_BLACK,
+            stroke = Colors.WHITE,
+            strokeThickness = 5.0
+        )
         line = circle.line(.0, .0, .0, .0, Colors["#DE3C4B"])
-        circle.anchor(.5, .5)
 
         registerUpdaters(scene.input, sc.height, sc.width, static = static)
         CIRCLE_TO_PARTICLE[circle] = this
 
         circle.onCollision(filter = { it is Circle }, kind = CollisionKind.SHAPE) {
             handleCollisions(it)
-        }
-
-        circle.onCollision(filter = { it is Circle && it.radius > 100.0 }, kind = CollisionKind.SHAPE) {
-            (this as Circle).fill = Colors.RED
         }
     }
 
@@ -127,8 +133,6 @@ class GasParticle(
             //                this.color = newColor
             velo *= 0.95
         }
-        line.x2 = velo.x * 10
-        line.y2 = velo.y * 10
     }
 
     private fun mouseXUpdater(input: Input) {
