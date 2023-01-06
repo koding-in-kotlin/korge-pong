@@ -3,10 +3,11 @@ import com.soywiz.korge.scene.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
 
-suspend fun main() = Korge(title = "Ideal gas here we go", width = 768, height = 768, bgcolor = Colors["#000052"]) {
+suspend fun main() = Korge(title = "Collision issues here we go", width = 1024, height = 1024, bgcolor = Colors["#000052"]) {
     val sceneContainer = sceneContainer()
 
-    sceneContainer.changeTo({ GasBox() })
+//    sceneContainer.changeTo({ GasBox() })
+    sceneContainer.changeTo({ DebugScene() })
 }
 
 const val DONT_GO_SLOWER_THAN = 1.0
