@@ -3,10 +3,11 @@ import com.soywiz.korge.scene.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
 
-suspend fun main() = Korge(title = "Collision issues here we go", width = 768, height = 768, bgcolor = Colors["#000052"]) {
+suspend fun main() = Korge(title = "Collision issues here we go", width = 768, height = 768) {
     val sceneContainer = sceneContainer()
-
-    sceneContainer.changeTo({ GasBox() })
+    // , bgcolor = Colors["#000052"]
+    sceneContainer.changeTo({ PongScene() })
+//    sceneContainer.changeTo({ GasBox() })
 //    sceneContainer.changeTo({ DebugScene() })
 }
 
