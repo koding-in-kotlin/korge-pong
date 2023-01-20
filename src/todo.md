@@ -56,14 +56,27 @@
 - [ ] Replace Line with Rect
 - [ ] Debug weird collisions
 
+## Next-next
+
+- [x] possibility to move left paddle
+- [x] sneaky possibility to move right paddle
+- [x] make the ball bounce from the paddles
+- [x] make the ball bounce from ceil/floor
+- [ ] simple pong AI
+- [ ] AAA like SLOWDOWN ON LOOOSE !!!!!!
+- [ ] Fancy effects like particles
+
 ## Brave New World
 
+- [ ] Implement 2-body/3-body problem (no collisions)
+- [ ] Use Box2D (plugin for physics in korge)
+- [ ] Make a platformer in Korge
+- [ ] Simple game in Korge with SOME backend (+1 from Igor)
+- [ ] Take a look at Kotlin-godot?
 - [ ] velocity-based color?
    - [ ] check dataclasses
    - [ ] make benchmarks, probably runtime-dependent
 - [ ] Continue with one ball
    - [ ] add gravity or some sort of acceleration
    - [ ] change something else like add air friction
-- [ ] Two-body problem? Three-body problems?
-- [ ] Make a platformer
 - [ ] Add joystick
