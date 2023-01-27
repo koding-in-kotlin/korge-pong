@@ -62,9 +62,19 @@
 - [x] sneaky possibility to move right paddle
 - [x] make the ball bounce from the paddles
 - [x] make the ball bounce from ceil/floor
-- [ ] simple pong AI
+- [X] simple pong AI
 - [ ] AAA like SLOWDOWN ON LOOOSE !!!!!!
 - [ ] Fancy effects like particles
+
+## Multiplayer pong detour
+
+- [ ] A "client" that renders the field
+- [ ] A proper "server" that can wait for connections
+- [ ] 3 Scenes and changes between them:
+  - [ ] start selection Local/Host/Client
+  - [ ] second with game itself
+  - [ ] third Win / Loose graphics and score
+- [ ] Maybe implement tetris instead of pong
 
 ## Brave New World
 

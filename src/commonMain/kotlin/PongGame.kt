@@ -5,40 +5,11 @@ import com.soywiz.korge.view.*
 import com.soywiz.korge.view.Circle
 import com.soywiz.korim.color.*
 import com.soywiz.korim.text.*
-import com.soywiz.korio.async.*
 import com.soywiz.korio.net.*
 import com.soywiz.korma.geom.*
 import kotlin.random.*
 
-class Paddle(val sceneContainer: Container, val x: Double) {
-    var rect: SolidRect
-    private val height = 100
-
-    init {
-        rect = sceneContainer.solidRect(10, height) {
-            x = this@Paddle.x
-            y = (sceneContainer.height - height) / 2
-        }
-    }
-
-    operator fun minus(dy: Double): Paddle {
-        rect.y -= dy
-        if (rect.y < 0) {
-            rect.y = 0.0
-        }
-        return this
-    }
-
-    operator fun plus(dy: Double): Paddle {
-        rect.y += dy
-        if (rect.y > (sceneContainer.height - height)) {
-            rect.y = sceneContainer.height - height
-        }
-        return this
-    }
-}
-
-class PongScene : Scene() {
+object PongGame : Scene() {
     private var scoreLeft = 0
     private var scoreRight = 0
     private val paddleSpeed = 10.0
@@ -121,24 +92,24 @@ class PongScene : Scene() {
 
         server = createTcpServer(5050, "0.0.0.0")
 
-        launchImmediately {
-            server.listen { client ->
-                while (true) {
-                    if (client.connected) {
-                        val msg = client.read()
-                        if (msg < 255) {
-                            val char = msg.toChar()
-                            when (char) {
-                                'a' -> left -= paddleSpeed
-                                'z' -> left += paddleSpeed
-                                'q' -> {
-                                    client.close()
-                                    break
-                                }
+
+        server.listen { client ->
+            while (true) {
+                if (client.connected) {
+                    val msg = client.read()
+                    if (msg < 255) {
+                        val char = msg.toChar()
+                        when (char) {
+                            'a' -> left -= paddleSpeed
+                            'z' -> left += paddleSpeed
+                            'q' -> {
+                                client.close()
+                                break
                             }
                         }
                     }
                 }
+
             }
         }
     }
