@@ -5,19 +5,22 @@ import com.soywiz.korge.view.*
 import com.soywiz.korge.view.Circle
 import com.soywiz.korim.color.*
 import com.soywiz.korim.text.*
+import com.soywiz.korio.async.*
+import com.soywiz.korio.net.*
 import com.soywiz.korma.geom.*
 import kotlin.random.*
 
 class Paddle(val sceneContainer: Container, val x: Double) {
     var rect: SolidRect
     private val height = 100
+
     init {
         rect = sceneContainer.solidRect(10, height) {
             x = this@Paddle.x
             y = (sceneContainer.height - height) / 2
         }
     }
-    
+
     operator fun minus(dy: Double): Paddle {
         rect.y -= dy
         if (rect.y < 0) {
@@ -39,6 +42,8 @@ class PongScene : Scene() {
     private var scoreLeft = 0
     private var scoreRight = 0
     private val paddleSpeed = 10.0
+
+    lateinit var server: AsyncServer
 
     val debug = false
     var velocity: Vector2D = Vector2D(xx(), yy())
@@ -101,18 +106,41 @@ class PongScene : Scene() {
             if (y < 0) {
                 velocity.y = -velocity.y
             }
-            if (y > (sceneContainer.height - ball.radius*2)) {
+            if (y > (sceneContainer.height - ball.radius * 2)) {
                 velocity.y = -velocity.y
             }
         }
 
-        ball.onCollision(filter = {it is SolidRect}) {
+        ball.onCollision(filter = { it is SolidRect }) {
             velocity.x = -velocity.x
             velocity.y = Random.nextDouble(2.0, 8.0)
         }
 
         // net
         line(x0, 0.0, x0, sceneContainer.height)
+
+        server = createTcpServer(5050, "0.0.0.0")
+
+        launchImmediately {
+            server.listen { client ->
+                while (true) {
+                    if (client.connected) {
+                        val msg = client.read()
+                        if (msg < 255) {
+                            val char = msg.toChar()
+                            when (char) {
+                                'a' -> left -= paddleSpeed
+                                'z' -> left += paddleSpeed
+                                'q' -> {
+                                    client.close()
+                                    break
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override suspend fun SContainer.sceneMain() {
@@ -126,6 +154,7 @@ class PongScene : Scene() {
                 // checke the boundaries
             }
         }
+
         this.addUpdater {
             when {
                 input.keys.pressing(Key.UP) -> {
@@ -135,6 +164,7 @@ class PongScene : Scene() {
                         right -= paddleSpeed
                     }
                 }
+
                 input.keys.pressing(Key.DOWN) -> {
                     left += paddleSpeed
 
