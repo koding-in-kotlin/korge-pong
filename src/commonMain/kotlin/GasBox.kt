@@ -50,10 +50,10 @@ class GasBox : Scene() {
             lhs.circle.fill = Colors.TRANSPARENT_BLACK
             rhs.circle.fill = Colors.TRANSPARENT_BLACK
             line(lhs.x, lhs.y, rhs.x, rhs.y).addFixedUpdater(60.timesPerSecond){
-                x1 = lhs.x + lhs.mass
-                y1 = lhs.y + lhs.mass
-                x2 = rhs.x + rhs.mass
-                y2 = rhs.y + rhs.mass
+                x1 = lhs.x
+                y1 = lhs.y
+                x2 = rhs.x
+                y2 = rhs.y
             }
         }
 
@@ -62,13 +62,11 @@ class GasBox : Scene() {
             circle.fill = Colors.TRANSPARENT_BLACK
         })
 */
-        /*
-                (100..700 step 100).forEach { x ->
-                    (100..700 step 100).forEach { y ->
-                        particles.add(GasParticle(this@GasBox, Vector2(.0, .0), 10.0, x.toDouble(), y.toDouble()))
-                    }
-                }
-        */
+        (100..700 step 100).forEach { x ->
+            (100..700 step 100).forEach { y ->
+                particles.add(GasParticle(this@GasBox, Vector2(.0, .0), 10.0, x.toDouble(), y.toDouble()))
+            }
+        }
 
         // maybe extract it
         this.addUpdater {

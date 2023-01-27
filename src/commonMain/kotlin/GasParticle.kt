@@ -38,14 +38,7 @@ class GasParticle(
     init {
         circle.x = defaultX ?: Random.nextDouble(circle.radius, sc.width - circle.radius)
         circle.y = defaultY ?: Random.nextDouble(circle.radius, sc.height - circle.radius)
-        circle.roundRect(
-            2.0 * circle.radius,
-            2.0 * circle.radius,
-            1.0,
-            fill = Colors.TRANSPARENT_BLACK,
-            stroke = Colors.WHITE,
-            strokeThickness = 5.0
-        )
+        circle.anchor(0.5, 0.5)
         line = circle.line(.0, .0, .0, .0, Colors["#DE3C4B"])
 
         registerUpdaters(scene.input, sc.height, sc.width, static = static)
@@ -64,11 +57,11 @@ class GasParticle(
         val other = CIRCLE_TO_PARTICLE[it]!!
         val distance = kotlin.math.hypot(x - it.x, y - it.y)
         val neededDistance = me.circle.radius + other.circle.radius
-//        if (distance < neededDistance) {
-//            val (dx, dy) = Vector2(it.x - x, it.y - y).normalize() * (neededDistance - distance)
-//            it.x += dx
-//            it.y += dy
-//        }
+        if (distance <= neededDistance) {
+            val (dx, dy) = Vector2(it.x - x, it.y - y).normalize() * (neededDistance - distance)
+            it.x += dx - 5.0
+            it.y += dy - 5.0
+        }
         val u1 = me.velo
         val u2 = other.velo
         val x1 = Vector2(this.x + me.circle.radius, this.y + me.circle.radius)
@@ -127,10 +120,10 @@ class GasParticle(
         }
         if (change) {
             // hmmmm
-            //                var newColor = MY_COLORS.random()
-            //                while (newColor == this.color)
-            //                    newColor = MY_COLORS.random()
-            //                this.color = newColor
+            var newColor = MY_COLORS.random()
+            while (newColor == this.color)
+                newColor = MY_COLORS.random()
+            this.color = newColor
             velo *= 0.95
         }
     }
