@@ -7,22 +7,43 @@ import com.soywiz.korim.color.*
 import com.soywiz.korim.text.*
 import com.soywiz.korio.lang.*
 import com.soywiz.korio.net.*
+import com.soywiz.korio.util.*
 import com.soywiz.korma.geom.*
 import kotlin.random.*
 
 
-class GameState(
-    private val left: UByte,  // vertical position of left paddle
-    private val right: UByte, // vertical position of right paddle
+data class GameState(
+    private val left: Double,  // vertical position of left paddle
+    private val right: Double, // vertical position of right paddle
     private val ballPos: Point,
     private val ballVelocity: Vector2D,
 ) {
-    fun toMessage() : ByteArray {
-        val xx = ballPos.x.toString()
-        val yy = ballPos.y.toString()
+    @OptIn(ExperimentalUnsignedTypes::class)
+    fun toMessage(): UByteArray {
+        fun Double.toPaddedString() = toStringDecimal(2).padStart(8)
+        fun String.toASCIIByteArray() = toByteArray(charset = ASCII).toUByteArray()
+        fun Point.toUByteArray() = x.toPaddedString().toASCIIByteArray() + y.toPaddedString().toASCIIByteArray()
+        fun Double.toUByteArray() = toPaddedString().toASCIIByteArray()
 
-        ubyteArrayOf(left, right, xx.toByteArray(charset=ASCII) )
+        return ubyteArrayOf(*left.toUByteArray(), *right.toUByteArray(), *ballPos.toUByteArray(), *ballVelocity.toUByteArray())
     }
+
+    companion object{
+        @OptIn(ExperimentalUnsignedTypes::class)
+        fun fromMessage(message: UByteArray):GameState{
+            val doublesAsUbytes = message.chunked(8)
+            val doubles = doublesAsUbytes.map {
+                it.map { it.toByte() }.toByteArray().toString(ASCII).toDouble()
+            }
+            return GameState(
+                doubles[0],
+                doubles[1],
+                Point(doubles[2], doubles[3]),
+                Point(doubles[4], doubles[5])
+            )
+        }
+    }
+
 }
 
 object PongGame : Scene() {

@@ -1,27 +1,28 @@
 import com.soywiz.korge.gradle.*
 
 plugins {
-	alias(libs.plugins.korge)
+    alias(libs.plugins.korge)
 }
 
 korge {
-	id = "com.github.cra"
+    id = "com.github.cra"
 
 // To enable all targets at once
 
-	targetAll()
+    targetAll()
 
 // To enable targets based on properties/environment variables
-	//targetDefault()
+    //targetDefault()
 
 // To selectively enable targets
-	
-	targetJvm()
-	targetJs()
-	targetDesktop()
-	targetIos()
-	targetAndroidIndirect() // targetAndroidDirect()
 
-	serializationJson()
-	//targetAndroidDirect()
+    targetJvm()
+    targetJs()
+    targetDesktop()
+    targetIos()
+    targetAndroidIndirect() // targetAndroidDirect()
+
+    serializationJson()
+    //targetAndroidDirect()
 }
+
