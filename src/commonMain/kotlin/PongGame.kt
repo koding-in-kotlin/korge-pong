@@ -5,9 +5,25 @@ import com.soywiz.korge.view.*
 import com.soywiz.korge.view.Circle
 import com.soywiz.korim.color.*
 import com.soywiz.korim.text.*
+import com.soywiz.korio.lang.*
 import com.soywiz.korio.net.*
 import com.soywiz.korma.geom.*
 import kotlin.random.*
+
+
+class GameState(
+    private val left: UByte,  // vertical position of left paddle
+    private val right: UByte, // vertical position of right paddle
+    private val ballPos: Point,
+    private val ballVelocity: Vector2D,
+) {
+    fun toMessage() : ByteArray {
+        val xx = ballPos.x.toString()
+        val yy = ballPos.y.toString()
+
+        ubyteArrayOf(left, right, xx.toByteArray(charset=ASCII) )
+    }
+}
 
 object PongGame : Scene() {
     private var scoreLeft = 0

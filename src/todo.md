@@ -68,12 +68,14 @@
 
 ## Multiplayer pong detour
 
+- [ ] game state
 - [ ] A "client" that renders the field
 - [ ] A proper "server" that can wait for connections
 - [ ] 3 Scenes and changes between them:
   - [ ] start selection Local/Host/Client
   - [ ] second with game itself
   - [ ] third Win / Loose graphics and score
+  - [ ] UI yes we want UI please add UI
 - [ ] Maybe implement tetris instead of pong
 
 ## Brave New World
