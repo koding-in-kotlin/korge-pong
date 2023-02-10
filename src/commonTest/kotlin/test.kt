@@ -32,6 +32,6 @@ class MyTest : ViewsForTesting() {
     fun testStateSerialization() {
         val gameState = GameState(.0, .1, Point(.2, .3), Point(.4, 0.5))
         Console.error(gameState)
-        assertEquals(gameState, GameState.fromMessage(gameState.toMessage()))
+        assertEquals(gameState, gameState.toMessage().toGameState())
     }
 }

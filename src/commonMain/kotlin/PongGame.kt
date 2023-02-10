@@ -18,32 +18,36 @@ data class GameState(
     private val ballPos: Point,
     private val ballVelocity: Vector2D,
 ) {
-    @OptIn(ExperimentalUnsignedTypes::class)
-    fun toMessage(): UByteArray {
+    fun toMessage(): ByteArray {
         fun Double.toPaddedString() = toStringDecimal(2).padStart(8)
-        fun String.toASCIIByteArray() = toByteArray(charset = ASCII).toUByteArray()
-        fun Point.toUByteArray() = x.toPaddedString().toASCIIByteArray() + y.toPaddedString().toASCIIByteArray()
-        fun Double.toUByteArray() = toPaddedString().toASCIIByteArray()
+        fun Point.toByteArray() =
+            x.toPaddedString().toByteArray(charset = ASCII) + y.toPaddedString().toByteArray(charset = ASCII)
 
-        return ubyteArrayOf(*left.toUByteArray(), *right.toUByteArray(), *ballPos.toUByteArray(), *ballVelocity.toUByteArray())
+        fun Double.toByteArray() = toPaddedString().toByteArray(charset = ASCII)
+        return byteArrayOf(
+            *left.toByteArray(),
+            *right.toByteArray(),
+            *ballPos.toByteArray(),
+            *ballVelocity.toByteArray()
+        )
     }
 
-    companion object{
-        @OptIn(ExperimentalUnsignedTypes::class)
-        fun fromMessage(message: UByteArray):GameState{
-            val doublesAsUbytes = message.chunked(8)
-            val doubles = doublesAsUbytes.map {
-                it.map { it.toByte() }.toByteArray().toString(ASCII).toDouble()
-            }
-            return GameState(
-                doubles[0],
-                doubles[1],
-                Point(doubles[2], doubles[3]),
-                Point(doubles[4], doubles[5])
-            )
+
+}
+
+fun ByteArray.toGameState(): GameState {
+    val doubles = asSequence()
+        .chunked(8)
+        .map {
+            it.toByteArray().toString(ASCII).toDouble()
         }
-    }
-
+        .toList()
+    return GameState(
+        doubles[0],
+        doubles[1],
+        Point(doubles[2], doubles[3]),
+        Point(doubles[4], doubles[5])
+    )
 }
 
 object PongGame : Scene() {
