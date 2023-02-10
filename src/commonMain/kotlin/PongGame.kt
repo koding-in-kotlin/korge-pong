@@ -1,39 +1,19 @@
-import com.soywiz.klock.*
-import com.soywiz.korev.*
-import com.soywiz.korge.scene.*
+import com.soywiz.klock.timesPerSecond
+import com.soywiz.klogger.Console
+import com.soywiz.korev.Key
+import com.soywiz.korev.Key.*
+import com.soywiz.korge.scene.Scene
 import com.soywiz.korge.view.*
-import com.soywiz.korge.view.Circle
-import com.soywiz.korim.color.*
-import com.soywiz.korim.text.*
-import com.soywiz.korio.lang.*
+import com.soywiz.korim.color.Colors
+import com.soywiz.korim.text.TextAlignment
+import com.soywiz.korio.async.launchImmediately
+import com.soywiz.korio.lang.ASCII
+import com.soywiz.korio.lang.toString
 import com.soywiz.korio.net.*
-import com.soywiz.korio.util.*
-import com.soywiz.korma.geom.*
-import kotlin.random.*
+import com.soywiz.korma.geom.Point
+import com.soywiz.korma.geom.Vector2D
+import kotlin.random.Random
 
-
-data class GameState(
-    private val left: Double,  // vertical position of left paddle
-    private val right: Double, // vertical position of right paddle
-    private val ballPos: Point,
-    private val ballVelocity: Vector2D,
-) {
-    fun toMessage(): ByteArray {
-        fun Double.toPaddedString() = toStringDecimal(2).padStart(8)
-        fun Point.toByteArray() =
-            x.toPaddedString().toByteArray(charset = ASCII) + y.toPaddedString().toByteArray(charset = ASCII)
-
-        fun Double.toByteArray() = toPaddedString().toByteArray(charset = ASCII)
-        return byteArrayOf(
-            *left.toByteArray(),
-            *right.toByteArray(),
-            *ballPos.toByteArray(),
-            *ballVelocity.toByteArray()
-        )
-    }
-
-
-}
 
 fun ByteArray.toGameState(): GameState {
     val doubles = asSequence()
@@ -93,6 +73,7 @@ object PongGame : Scene() {
         left = Paddle(sceneContainer, sceneContainer.width / 10)
         right = Paddle(sceneContainer, sceneContainer.width * 9 / 10)
 
+
         ball.addFixedUpdater(60.timesPerSecond) {
             x += velocity.x
             y += velocity.y
@@ -137,22 +118,34 @@ object PongGame : Scene() {
         server.listen { client ->
             while (true) {
                 if (client.connected) {
-                    val msg = client.read()
-                    if (msg < 255) {
-                        val char = msg.toChar()
-                        when (char) {
-                            'a' -> left -= paddleSpeed
-                            'z' -> left += paddleSpeed
-                            'q' -> {
-                                client.close()
-                                break
-                            }
-                        }
-                    }
+                    val buffer = ByteArray(6 * 8)
+                    client.read(buffer, 0, 6 * 8)
+                    Console.info(buffer.toGameState())
+                    /*
+                                        val msg = client.read()
+                                        if (msg < 255) {
+                                            when (msg.toChar()) {
+                                                'a' -> left -= paddleSpeed
+                                                'z' -> left += paddleSpeed
+                                                'q' -> {
+                                                    client.close()
+                                                    break
+                                                }
+                                            }
+                                        }
+                    */
                 }
 
             }
         }
+        val state = GameState(
+            120.2, 150.0, Point(30.0, 50.0), Vector2D(5.0, 5.0)
+        )
+        val client = createTcpClient()
+        client.connect("127.0.0.1", 5050)
+        client.write(state.toMessage())
+
+
     }
 
     override suspend fun SContainer.sceneMain() {
@@ -169,7 +162,7 @@ object PongGame : Scene() {
 
         this.addUpdater {
             when {
-                input.keys.pressing(Key.UP) -> {
+                input.keys.pressing(UP) -> {
                     left -= paddleSpeed
 
                     if (debug) {
@@ -177,12 +170,16 @@ object PongGame : Scene() {
                     }
                 }
 
-                input.keys.pressing(Key.DOWN) -> {
+                input.keys.pressing(DOWN) -> {
                     left += paddleSpeed
 
                     if (debug) {
                         right += paddleSpeed
                     }
+                }
+
+                input.keys.justReleased(C) -> {
+                    launchImmediately { sceneContainer.changeTo({ ClientScene() }) }
                 }
             }
         }

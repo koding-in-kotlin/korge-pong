@@ -28,10 +28,8 @@ class MyTest : ViewsForTesting() {
     }
 
     @Test
-    @OptIn(kotlin.ExperimentalUnsignedTypes::class)
     fun testStateSerialization() {
         val gameState = GameState(.0, .1, Point(.2, .3), Point(.4, 0.5))
-        Console.error(gameState)
         assertEquals(gameState, gameState.toMessage().toGameState())
     }
 }
