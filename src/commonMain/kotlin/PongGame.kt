@@ -12,6 +12,7 @@ import com.soywiz.korio.lang.toString
 import com.soywiz.korio.net.*
 import com.soywiz.korma.geom.Point
 import com.soywiz.korma.geom.Vector2D
+import kotlin.math.*
 import kotlin.random.Random
 
 
@@ -34,8 +35,6 @@ object PongGame : Scene() {
     private var scoreLeft = 0
     private var scoreRight = 0
     private val paddleSpeed = 10.0
-
-    lateinit var server: AsyncServer
 
     val debug = false
     var velocity: Vector2D = Vector2D(xx(), yy())
@@ -111,44 +110,37 @@ object PongGame : Scene() {
 
         // net
         line(x0, 0.0, x0, sceneContainer.height)
-
-        server = createTcpServer(5050, "0.0.0.0")
-
-
-        server.listen { client ->
-            while (true) {
-                if (client.connected) {
-                    val buffer = ByteArray(6 * 8)
-                    client.read(buffer, 0, 6 * 8)
-                    Console.info(buffer.toGameState())
-                    /*
-                                        val msg = client.read()
-                                        if (msg < 255) {
-                                            when (msg.toChar()) {
-                                                'a' -> left -= paddleSpeed
-                                                'z' -> left += paddleSpeed
-                                                'q' -> {
-                                                    client.close()
-                                                    break
-                                                }
-                                            }
-                                        }
-                    */
-                }
-
-            }
-        }
-        val state = GameState(
-            120.2, 150.0, Point(30.0, 50.0), Vector2D(5.0, 5.0)
-        )
-        val client = createTcpClient()
-        client.connect("127.0.0.1", 5050)
-        client.write(state.toMessage())
-
-
     }
 
     override suspend fun SContainer.sceneMain() {
+        val server = createTcpServer(5050, "0.0.0.0")
+        server.listen { client ->
+            while (true) {
+                if (client.connected) {
+
+                    val dir = client.read()
+                    if (dir == 255) {
+                        left -= paddleSpeed
+                    }
+                    else if (dir == 1) {
+                        left += paddleSpeed
+                    }
+                    // this is for the state
+//                    val buffer = ByteArray(6 * 8)
+//                    client.read(buffer, 0, 6 * 8)
+//                    Console.info("I GOT THIS ${buffer.toGameState()}")
+//                    val (left1, right1, ballPos, ballVelocity) = buffer.toGameState()
+//                    ball.x = ballPos.x
+//                    ball.y = ballPos.y
+//                    velocity.x = ballVelocity.x
+//                    velocity.y = ballVelocity.y
+//                    left.rect.y = left1
+//                    right.rect.y = right1
+
+                }
+            }
+        }
+
         this.addFixedUpdater(10.timesPerSecond) {
             if (ball.y > right.rect.y) {
                 right.rect.y += paddleSpeed

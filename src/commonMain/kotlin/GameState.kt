@@ -5,10 +5,10 @@ import com.soywiz.korma.geom.Point
 import com.soywiz.korma.geom.Vector2D
 
 data class GameState(
-    private val left: Double,  // vertical position of left paddle
-    private val right: Double, // vertical position of right paddle
-    private val ballPos: Point,
-    private val ballVelocity: Vector2D,
+    val left: Double,  // vertical position of left paddle
+    val right: Double, // vertical position of right paddle
+    val ballPos: Point,
+    val ballVelocity: Vector2D,
 ) {
     fun toMessage(): ByteArray {
         fun Double.toPaddedString() = toStringDecimal(2).padStart(8)
