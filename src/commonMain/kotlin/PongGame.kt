@@ -1,8 +1,8 @@
-import com.soywiz.klock.timesPerSecond
+import com.soywiz.klock.*
 import com.soywiz.klogger.Console
 import com.soywiz.korev.Key
 import com.soywiz.korev.Key.*
-import com.soywiz.korge.scene.Scene
+import com.soywiz.korge.scene.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.Colors
 import com.soywiz.korim.text.TextAlignment
@@ -47,8 +47,10 @@ object PongGame : Scene() {
     lateinit var left: Paddle
     lateinit var scoreLeftText: Text
     lateinit var scoreRightText: Text
+    lateinit var middleText: Text
 
     lateinit var ball: Circle
+    lateinit var backClient: AsyncClient
 
     override suspend fun SContainer.sceneInit() {
         val x0 = sceneContainer.width / 2
@@ -63,6 +65,11 @@ object PongGame : Scene() {
             y = 50.0
             alignment = TextAlignment.RIGHT
         }
+        middleText = text("TEXT", 32.0) {
+            x = sceneContainer.width / 2
+            y = 50.0
+            alignment = TextAlignment.CENTER
+        }
 
         ball = circle(10.0, Colors.WHITE) {
             x = x0
@@ -72,6 +79,7 @@ object PongGame : Scene() {
         left = Paddle(sceneContainer, sceneContainer.width / 10)
         right = Paddle(sceneContainer, sceneContainer.width * 9 / 10)
 
+        backClient = createTcpClient()
 
         ball.addFixedUpdater(60.timesPerSecond) {
             x += velocity.x
@@ -101,6 +109,16 @@ object PongGame : Scene() {
             if (y > (sceneContainer.height - ball.radius * 2)) {
                 velocity.y = -velocity.y
             }
+
+            if (backClient.connected) {
+                val state = GameState(
+                    left.rect.y,
+                    right.rect.y,
+                    Point(ball.x, ball.y),
+                    velocity,
+                )
+                launchImmediately { backClient.write(state.toMessage()) }
+            }
         }
 
         ball.onCollision(filter = { it is SolidRect }) {
@@ -112,12 +130,21 @@ object PongGame : Scene() {
         line(x0, 0.0, x0, sceneContainer.height)
     }
 
+
     override suspend fun SContainer.sceneMain() {
         val server = createTcpServer(5050, "0.0.0.0")
+
         server.listen { client ->
+            var clientConnected = false
             while (true) {
                 if (client.connected) {
-
+                    if(!clientConnected) {
+                        middleText.text = "Stalling here"
+//                        delay(TimeSpan(10.0))
+                        backClient.connect("127.0.0.1", 5055)
+                        clientConnected = true
+                        middleText.text = "Client connected. Or should be"
+                    }
                     val dir = client.read()
                     if (dir == 255) {
                         left -= paddleSpeed
@@ -125,19 +152,7 @@ object PongGame : Scene() {
                     else if (dir == 1) {
                         left += paddleSpeed
                     }
-                    // this is for the state
-//                    val buffer = ByteArray(6 * 8)
-//                    client.read(buffer, 0, 6 * 8)
-//                    Console.info("I GOT THIS ${buffer.toGameState()}")
-//                    val (left1, right1, ballPos, ballVelocity) = buffer.toGameState()
-//                    ball.x = ballPos.x
-//                    ball.y = ballPos.y
-//                    velocity.x = ballVelocity.x
-//                    velocity.y = ballVelocity.y
-//                    left.rect.y = left1
-//                    right.rect.y = right1
-
-                }
+                } else break
             }
         }
 
