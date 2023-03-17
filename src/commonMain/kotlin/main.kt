@@ -19,7 +19,7 @@ suspend fun main(vararg args: String) = if (Environment.get("MODE") == "server")
     }
 } else {
     val state = GameState(
-        120.2, 150.0, Point(30.0, 50.0), Vector2D(5.0, 5.0), 0,0
+        120.2, 150.0, Point(30.0, 50.0), Vector2D(5.0, 5.0), 0.0,0.0
     )
     val client = createTcpClient("127.0.0.3", 5252)
     client.connect("127.0.0.1", 5050)

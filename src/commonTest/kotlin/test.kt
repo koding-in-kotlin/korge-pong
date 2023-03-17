@@ -29,7 +29,15 @@ class MyTest : ViewsForTesting() {
 
     @Test
     fun testStateSerialization() {
-        val gameState = GameState(.0, .1, Point(.2, .3), Point(.4, 0.5), 2, 1)
+        val gameState = GameState(
+            .5,
+            .1,
+            Point(.2, .3),
+            Point(.4, 0.5),
+            2.0,
+            1.0
+        )
+        assertEquals(GameState.thickness, gameState.toMessage().size)
         // SORRY THIS IS BROKEN I KNOW
         assertEquals(gameState, gameState.toMessage().toGameState())
     }

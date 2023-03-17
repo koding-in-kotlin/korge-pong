@@ -14,7 +14,7 @@ import kotlin.random.*
 
 fun ByteArray.toGameState(): GameState {
     val doubles = asSequence()
-        .chunked(10)
+        .chunked(8)
         .map {
             it.toByteArray().toString(ASCII).toDouble()
         }
@@ -24,14 +24,14 @@ fun ByteArray.toGameState(): GameState {
         doubles[1],
         Point(doubles[2], doubles[3]),
         Point(doubles[4], doubles[5]),
-        doubles[6].toInt(),
-        doubles[7].toInt()
+        doubles[6],
+        doubles[7],
     )
 }
 
 object PongGame : Scene() {
-    private var scoreLeft = 0
-    private var scoreRight = 0
+    private var scoreLeft = 0.0
+    private var scoreRight = 0.0
     private val paddleSpeed = 10.0
 
     val debug = false
@@ -82,7 +82,7 @@ object PongGame : Scene() {
             y += velocity.y
 
             if (x > sceneContainer.width) {
-                scoreLeft += 1
+                scoreLeft += 1.0
                 x = x0
                 y = y0
                 scoreLeftText.text = "$scoreLeft"
@@ -91,7 +91,7 @@ object PongGame : Scene() {
             }
 
             if (x < 0) {
-                scoreRight += 1
+                scoreRight += 1.0
                 x = x0
                 y = y0
                 scoreRightText.text = "$scoreRight"

@@ -10,6 +10,7 @@ import com.soywiz.korim.color.*
 import com.soywiz.korim.text.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.net.*
+import com.soywiz.korio.stream.*
 import com.soywiz.korma.geom.*
 import kotlin.random.*
 
@@ -79,15 +80,15 @@ class ClientScene : Scene() {
 
         while (true) {
             if (client.connected) {
-                val buffer = ByteArray(6 * 10)
-                client.read(buffer, 0, 6 * 10)
+                val buffer = ByteArray(GameState.thickness)
+                client.read(buffer)
                 val (left1, right1, ballPos, _, scoreLeft, scoreRight) = buffer.toGameState()
                 ball.x = ballPos.x / 2
                 ball.y = ballPos.y / 2
                 left.rect.y = left1 / 2
                 right.rect.y = right1 / 2
                 scoreLeftText.text = "$scoreLeft"
-                scoreLeftText.text = "$scoreRight"
+                scoreRightText.text = "$scoreRight"
 
             }
         }
