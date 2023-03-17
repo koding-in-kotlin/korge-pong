@@ -4,8 +4,6 @@ import com.soywiz.korge.input.*
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.ui.*
 import com.soywiz.korge.view.*
-import com.soywiz.korge.view.onClick
-import com.soywiz.korim.color.*
 import com.soywiz.korim.text.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.net.*
@@ -19,7 +17,6 @@ class ClientScene : Scene() {
 
     lateinit var gameStateText: Text
     override suspend fun SContainer.sceneMain() {
-        val server = createTcpServer(5055, "0.0.0.0")
         val client = createTcpClient()
 
         gameStateText = text("State", 16.0) {
@@ -64,13 +61,12 @@ class ClientScene : Scene() {
             }
         }
 
-        server.listen { client ->
-            while (true) {
-                if (client.connected) {
-                    val buffer = ByteArray(6 * 8)
-                    client.read(buffer, 0, 6 * 8)
-                    Console.info("I GOT THIS ${buffer.toGameState()}")
-                    gameStateText.text = buffer.toGameState().toString()
+        while (true) {
+            if (client.connected) {
+                val buffer = ByteArray(6 * 8)
+                client.read(buffer, 0, 6 * 8)
+                Console.info("I GOT THIS ${buffer.toGameState()}")
+                gameStateText.text = buffer.toGameState().toString()
 //                    val (left1, right1, ballPos, ballVelocity) = buffer.toGameState()
 
 //                    ball.x = ballPos.x
@@ -80,7 +76,6 @@ class ClientScene : Scene() {
 //                    left.rect.y = left1
 //                    right.rect.y = right1
 
-                }
             }
         }
 
