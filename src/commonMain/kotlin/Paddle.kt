@@ -2,12 +2,11 @@ import com.soywiz.korge.view.Container
 import com.soywiz.korge.view.SolidRect
 import com.soywiz.korge.view.solidRect
 
-class Paddle(val sceneContainer: Container, val x: Double) {
+class Paddle(val sceneContainer: Container, val x: Double, val height: Int = 100, val width: Int = 10) {
     var rect: SolidRect
-    private val height = 100
 
     init {
-        rect = sceneContainer.solidRect(10, height) {
+        rect = sceneContainer.solidRect(width, height) {
             x = this@Paddle.x
             y = (sceneContainer.height - height) / 2
         }
