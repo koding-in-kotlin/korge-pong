@@ -9,9 +9,11 @@ data class GameState(
     val right: Double, // vertical position of right paddle
     val ballPos: Point,
     val ballVelocity: Vector2D,
+    val leftScore: Int,
+    val rightScore: Int
 ) {
     fun toMessage(): ByteArray {
-        fun Double.toPaddedString() = toStringDecimal(2).padStart(8)
+        fun Double.toPaddedString() = toStringDecimal(1).padStart(8)
         fun Point.toByteArray() =
             x.toPaddedString().toByteArray(charset = ASCII) + y.toPaddedString().toByteArray(charset = ASCII)
 
@@ -20,7 +22,10 @@ data class GameState(
             *left.toByteArray(),
             *right.toByteArray(),
             *ballPos.toByteArray(),
-            *ballVelocity.toByteArray()
+            *ballVelocity.toByteArray(),
+            //  I'm sorry
+            *leftScore.toDouble().toByteArray(),
+            *rightScore.toDouble().toByteArray(),
         )
     }
 }

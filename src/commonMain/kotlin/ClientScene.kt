@@ -60,15 +60,9 @@ class ClientScene : Scene() {
         line(x0, 0.0, x0, sceneContainer.height)
     }
 
-    lateinit var gameStateText: Text
     override suspend fun SContainer.sceneMain() {
         val client = createTcpClient()
 
-        gameStateText = text("State", 16.0) {
-            x = 30.0
-            y = 120.0
-            alignment = TextAlignment.LEFT
-        }
         client.connect("127.0.0.1", 5050)
 
         this.addUpdater {
@@ -85,14 +79,15 @@ class ClientScene : Scene() {
 
         while (true) {
             if (client.connected) {
-                val buffer = ByteArray(6 * 8)
-                client.read(buffer, 0, 6 * 8)
-                gameStateText.text = buffer.toGameState().toString()
-                val (left1, right1, ballPos, _) = buffer.toGameState()
+                val buffer = ByteArray(6 * 10)
+                client.read(buffer, 0, 6 * 10)
+                val (left1, right1, ballPos, _, scoreLeft, scoreRight) = buffer.toGameState()
                 ball.x = ballPos.x / 2
                 ball.y = ballPos.y / 2
                 left.rect.y = left1 / 2
                 right.rect.y = right1 / 2
+                scoreLeftText.text = "$scoreLeft"
+                scoreLeftText.text = "$scoreRight"
 
             }
         }
