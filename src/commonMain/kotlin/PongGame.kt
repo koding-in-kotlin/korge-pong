@@ -1,19 +1,15 @@
 import com.soywiz.klock.*
-import com.soywiz.klogger.Console
-import com.soywiz.korev.Key
 import com.soywiz.korev.Key.*
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.view.*
-import com.soywiz.korim.color.Colors
-import com.soywiz.korim.text.TextAlignment
-import com.soywiz.korio.async.launchImmediately
-import com.soywiz.korio.lang.ASCII
-import com.soywiz.korio.lang.toString
+import com.soywiz.korge.view.Circle
+import com.soywiz.korim.color.*
+import com.soywiz.korim.text.*
+import com.soywiz.korio.async.*
+import com.soywiz.korio.lang.*
 import com.soywiz.korio.net.*
-import com.soywiz.korma.geom.Point
-import com.soywiz.korma.geom.Vector2D
-import kotlin.math.*
-import kotlin.random.Random
+import com.soywiz.korma.geom.*
+import kotlin.random.*
 
 
 fun ByteArray.toGameState(): GameState {
@@ -50,7 +46,7 @@ object PongGame : Scene() {
     lateinit var middleText: Text
 
     lateinit var ball: Circle
-    lateinit var backClient: AsyncClient
+    var backClient: AsyncClient? = null
 
     override suspend fun SContainer.sceneInit() {
         val x0 = sceneContainer.width / 2
@@ -78,8 +74,6 @@ object PongGame : Scene() {
 
         left = Paddle(sceneContainer, sceneContainer.width / 10)
         right = Paddle(sceneContainer, sceneContainer.width * 9 / 10)
-
-        backClient = createTcpClient()
 
         ball.addFixedUpdater(60.timesPerSecond) {
             x += velocity.x
@@ -110,14 +104,14 @@ object PongGame : Scene() {
                 velocity.y = -velocity.y
             }
 
-            if (backClient.connected) {
+            if (backClient?.connected == true) {
                 val state = GameState(
                     left.rect.y,
                     right.rect.y,
                     Point(ball.x, ball.y),
                     velocity,
                 )
-                launchImmediately { backClient.write(state.toMessage()) }
+                launchImmediately { backClient?.write(state.toMessage()) }
             }
         }
 
@@ -135,24 +129,15 @@ object PongGame : Scene() {
         val server = createTcpServer(5050, "0.0.0.0")
 
         server.listen { client ->
-            var clientConnected = false
-            while (true) {
-                if (client.connected) {
-                    if(!clientConnected) {
-                        middleText.text = "Stalling here"
-//                        delay(TimeSpan(10.0))
-                        backClient.connect("127.0.0.1", 5055)
-                        clientConnected = true
-                        middleText.text = "Client connected. Or should be"
-                    }
-                    val dir = client.read()
-                    if (dir == 255) {
-                        left -= paddleSpeed
-                    }
-                    else if (dir == 1) {
-                        left += paddleSpeed
-                    }
-                } else break
+            backClient = client
+            middleText.text = "Client connected. Or should be"
+            while (client.connected) {
+                val dir = client.read()
+                if (dir == 255) {
+                    left -= paddleSpeed
+                } else if (dir == 1) {
+                    left += paddleSpeed
+                }
             }
         }
 
