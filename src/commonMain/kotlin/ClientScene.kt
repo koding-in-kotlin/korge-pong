@@ -48,24 +48,21 @@ class ClientScene : Scene() {
             y = 25.0
             alignment = TextAlignment.CENTER
         }
-
-        ball = circle(5.0, Colors.WHITE) {
+        ball = circle(10.0/1024 * sceneContainer.width, Colors.WHITE) {
+//        ball = circle(kotlin.math.max((10.0 / 1024) * sceneContainer.width, 2.0), Colors.WHITE) {
             x = x0
             y = y0
         }
 
-        left = Paddle(sceneContainer, sceneContainer.width / 10, 50, 5)
-        right = Paddle(sceneContainer, sceneContainer.width * 9 / 10, 50, 5)
+        left = Paddle(sceneContainer, sceneContainer.width / 10, (sceneContainer.height * 0.13).toInt(), 5)
+        right = Paddle(sceneContainer, sceneContainer.width * 9 / 10,  (sceneContainer.height * 0.13).toInt(), 5)
 
         // net
         line(x0, 0.0, x0, sceneContainer.height)
     }
 
     override suspend fun SContainer.sceneMain() {
-        val client = createTcpClient()
-
-        client.connect("127.0.0.1", 5050)
-
+        val client = ClientConnectionScene.client
         this.addUpdater {
             when {
                 input.keys.pressing(Key.UP) -> {
@@ -83,12 +80,12 @@ class ClientScene : Scene() {
                 val buffer = ByteArray(GameState.thickness)
                 client.read(buffer)
                 val (left1, right1, ballPos, _, scoreLeft, scoreRight) = buffer.toGameState()
-                ball.x = ballPos.x / 2
-                ball.y = ballPos.y / 2
-                left.rect.y = left1 / 2
-                right.rect.y = right1 / 2
-                scoreLeftText.text = "$scoreLeft"
-                scoreRightText.text = "$scoreRight"
+                ball.x = ballPos.x * sceneContainer.width
+                ball.y = ballPos.y * sceneContainer.height
+                left.rect.y = left1 * sceneContainer.height
+                right.rect.y = right1 * sceneContainer.height
+                scoreLeftText.text = "${scoreLeft.toInt()}"
+                scoreRightText.text = "${scoreRight.toInt() + 70}"
 
             }
         }

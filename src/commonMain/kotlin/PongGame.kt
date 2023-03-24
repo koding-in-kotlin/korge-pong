@@ -74,8 +74,9 @@ object PongGame : Scene() {
             y = y0
         }
 
-        left = Paddle(sceneContainer, sceneContainer.width / 10)
-        right = Paddle(sceneContainer, sceneContainer.width * 9 / 10)
+        left = Paddle(sceneContainer, sceneContainer.width / 10, (sceneContainer.height * 0.13).toInt())
+        right = Paddle(sceneContainer, sceneContainer.width * 9 / 10,  (sceneContainer.height * 0.13).toInt())
+
 
         ball.addFixedUpdater(60.timesPerSecond) {
             x += velocity.x
@@ -107,7 +108,14 @@ object PongGame : Scene() {
             }
 
             if (backClient?.connected == true) {
-                val state = GameState(left.rect.y, right.rect.y, Point(ball.x, ball.y), velocity, scoreLeft, scoreRight)
+                val state = GameState(
+                    left.rect.y / sceneContainer.height,
+                    right.rect.y / sceneContainer.height,
+                    Point(ball.x / sceneContainer.width, ball.y/sceneContainer.height),
+                    velocity,
+                    scoreLeft,
+                    scoreRight
+                )
                 launchImmediately { backClient?.write(state.toMessage()) }
             }
         }

@@ -94,4 +94,9 @@
 - [ ] Add joystick
 
 
-CONNECT BUTTON
+## MULTIPONG THOUGHTS
+
+- [x] CONNECT BUTTON for client
+- [ ] Some ui for networking stuff maybe
+- [ ] ACTUAL multiplayer against each other (sending ip address), possibly hack it around. JUST ONCE
+- [ ] PARTICLE EFFECTSS for the BAAALL

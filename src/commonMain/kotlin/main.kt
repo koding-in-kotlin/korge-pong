@@ -13,9 +13,9 @@ suspend fun main(vararg args: String) = if (Environment.get("MODE") == "server")
     }
 
 } else if (Environment.get("MODE") == "client") {
-    Korge(title = "MultiPLONG CLIENT", width = 512, height = 384) {
+    Korge(title = "MultiPLONG CLIENT", width = 512, height = 200) {
         val sceneContainer = sceneContainer()
-        sceneContainer.changeTo({ ClientScene() })
+        sceneContainer.changeTo({ ClientConnectionScene })
     }
 } else {
     val state = GameState(
