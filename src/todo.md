@@ -97,6 +97,7 @@
 ## MULTIPONG THOUGHTS
 
 - [x] CONNECT BUTTON for client
-- [ ] Some ui for networking stuff maybe
-- [ ] ACTUAL multiplayer against each other (sending ip address), possibly hack it around. JUST ONCE
+- [ ] Some ui for networking stuff (enter IP, port) maybe
+- [x] ACTUAL connection using different computers
+- [ ] multiplayer against each other (sending ip address), possibly hack it around. JUST ONCE
 - [ ] PARTICLE EFFECTSS for the BAAALL

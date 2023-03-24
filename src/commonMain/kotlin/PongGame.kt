@@ -106,7 +106,14 @@ object PongGame : Scene() {
             if (y > (sceneContainer.height - ball.radius * 2)) {
                 velocity.y = -velocity.y
             }
+        }
 
+        ball.onCollision(filter = { it is SolidRect }) {
+            velocity.x = -velocity.x
+            velocity.y = Random.nextDouble(2.0, 8.0)
+        }
+
+        this.addFixedUpdater(10.timesPerSecond) {
             if (backClient?.connected == true) {
                 val state = GameState(
                     left.rect.y / sceneContainer.height,
@@ -118,11 +125,6 @@ object PongGame : Scene() {
                 )
                 launchImmediately { backClient?.write(state.toMessage()) }
             }
-        }
-
-        ball.onCollision(filter = { it is SolidRect }) {
-            velocity.x = -velocity.x
-            velocity.y = Random.nextDouble(2.0, 8.0)
         }
 
         // net
