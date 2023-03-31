@@ -3,9 +3,12 @@ import com.soywiz.korev.Key.*
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.view.*
 import com.soywiz.korge.view.Circle
+import com.soywiz.korge.view.camera.*
 import com.soywiz.korim.color.*
+import com.soywiz.korim.format.*
 import com.soywiz.korim.text.*
 import com.soywiz.korio.async.*
+import com.soywiz.korio.file.std.*
 import com.soywiz.korio.lang.*
 import com.soywiz.korio.net.*
 import com.soywiz.korma.geom.*
@@ -13,12 +16,9 @@ import kotlin.random.*
 
 
 fun ByteArray.toGameState(): GameState {
-    val doubles = asSequence()
-        .chunked(8)
-        .map {
+    val doubles = asSequence().chunked(8).map {
             it.toByteArray().toString(ASCII).toDouble()
-        }
-        .toList()
+        }.toList()
     return GameState(
         doubles[0],
         doubles[1],
@@ -50,6 +50,8 @@ object PongGame : Scene() {
     lateinit var ball: Circle
     var backClient: AsyncClient? = null
 
+    lateinit var explosion: Sprite
+
     override suspend fun SContainer.sceneInit() {
         val x0 = sceneContainer.width / 2
         val y0 = sceneContainer.height / 2
@@ -75,8 +77,25 @@ object PongGame : Scene() {
         }
 
         left = Paddle(sceneContainer, sceneContainer.width / 10, (sceneContainer.height * 0.13).toInt())
-        right = Paddle(sceneContainer, sceneContainer.width * 9 / 10,  (sceneContainer.height * 0.13).toInt())
+        right = Paddle(sceneContainer, sceneContainer.width * 9 / 10, (sceneContainer.height * 0.13).toInt())
 
+
+        val spriteMap = resourcesVfs["explosion.png"].readBitmap()
+
+        val explosionAnimation = SpriteAnimation(
+            spriteMap = spriteMap,
+            spriteWidth = 256,
+            spriteHeight = 250,
+            marginTop = 5,
+            marginLeft = 1,
+            columns = 8,
+            rows = 4,
+            offsetBetweenColumns = 0,
+            offsetBetweenRows = 0,
+        )
+
+        explosion = sprite(explosionAnimation)
+        explosion.x = left.x - 64
 
         ball.addFixedUpdater(60.timesPerSecond) {
             x += velocity.x
@@ -111,14 +130,19 @@ object PongGame : Scene() {
         ball.onCollision(filter = { it is SolidRect }) {
             velocity.x = -velocity.x
             velocity.y = Random.nextDouble(2.0, 8.0)
+
+            explosion.y = ball.y - 125 + ball.radius
+            explosion.x = ball.x - 128 - ball.radius
+            explosion.playAnimation()
+
         }
 
-        this.addFixedUpdater(10.timesPerSecond) {
+        this.addFixedUpdater(16.timesPerSecond) {
             if (backClient?.connected == true) {
                 val state = GameState(
                     left.rect.y / sceneContainer.height,
                     right.rect.y / sceneContainer.height,
-                    Point(ball.x / sceneContainer.width, ball.y/sceneContainer.height),
+                    Point(ball.x / sceneContainer.width, ball.y / sceneContainer.height),
                     velocity,
                     scoreLeft,
                     scoreRight
@@ -148,7 +172,7 @@ object PongGame : Scene() {
             }
         }
 
-        this.addFixedUpdater(10.timesPerSecond) {
+        this.addFixedUpdater(60.timesPerSecond) {
             if (ball.y > right.rect.y) {
                 right.rect.y += paddleSpeed
                 // check the boundaries
