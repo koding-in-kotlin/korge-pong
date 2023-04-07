@@ -1,6 +1,7 @@
 import com.soywiz.klock.*
 import com.soywiz.korev.Key.*
 import com.soywiz.korge.scene.*
+import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.*
 import com.soywiz.korge.view.Circle
 import com.soywiz.korge.view.camera.*
@@ -12,6 +13,7 @@ import com.soywiz.korio.file.std.*
 import com.soywiz.korio.lang.*
 import com.soywiz.korio.net.*
 import com.soywiz.korma.geom.*
+import com.soywiz.korma.interpolation.*
 import kotlin.random.*
 
 
@@ -53,8 +55,15 @@ object PongGame : Scene() {
     lateinit var explosion: Sprite
 
     override suspend fun SContainer.sceneInit() {
+
+
         val x0 = sceneContainer.width / 2
         val y0 = sceneContainer.height / 2
+
+        var img = image(resourcesVfs["background50.png"].readBitmap(), 0.5, 0.5) {
+            x = x0
+            y = y0
+        }
         scoreLeftText = text("LEFT", 32.0) {
             x = 100.0
             y = 50.0
@@ -126,7 +135,9 @@ object PongGame : Scene() {
                 velocity.y = -velocity.y
             }
         }
-
+        this.cameraContainer(20.0, 100.0)
+        val container = sceneContainer.cameraContainer(20.0,20.0, clip = true)
+        container.follow(ball, true)
         ball.onCollision(filter = { it is SolidRect }) {
             velocity.x = -velocity.x
             velocity.y = Random.nextDouble(2.0, 8.0)
@@ -134,6 +145,24 @@ object PongGame : Scene() {
             explosion.y = ball.y - 125 + ball.radius
             explosion.x = ball.x - 128 - ball.radius
             explosion.playAnimation()
+
+            if (it == left.rect) {
+                launchImmediately {
+                    it.tween(
+                        it::x[left.x - 2*ball.radius, left.x],
+                        time = 1000.milliseconds,
+                        easing = Easing.EASE_OUT_ELASTIC,
+                    )
+                }
+            } else {
+                launchImmediately {
+                    it.tween(
+                        it::x[right.x + 2*ball.radius, right.x],
+                        time = 1000.milliseconds,
+                        easing = Easing.EASE_OUT_ELASTIC,
+                    )
+                }
+            }
 
         }
 
