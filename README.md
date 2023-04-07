@@ -1,4 +1,10 @@
-# Korge Hello World and Template
+# Korge PONG WITH EXPLOISONS AND MIDJOURNEY BACKGROUND
+
+**SHUT UP AND OPEN THIS LINK** https://cra.github.io/koding-in-kotlin/
+
+**DON'T READ ANYTHING BELOW**
+
+---------
 
 This is a Hello World and Template for the KorGe game engine. Using gradle with kotlin-dsl.
 You can open this project in IntelliJ IDEA by opening the folder or the build.gradle.kts file.
