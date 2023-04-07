@@ -165,20 +165,20 @@ object PongGame : Scene() {
             }
 
         }
-
-        this.addFixedUpdater(16.timesPerSecond) {
-            if (backClient?.connected == true) {
-                val state = GameState(
-                    left.rect.y / sceneContainer.height,
-                    right.rect.y / sceneContainer.height,
-                    Point(ball.x / sceneContainer.width, ball.y / sceneContainer.height),
-                    velocity,
-                    scoreLeft,
-                    scoreRight
-                )
-                launchImmediately { backClient?.write(state.toMessage()) }
-            }
-        }
+//
+//        this.addFixedUpdater(16.timesPerSecond) {
+//            if (backClient?.connected == true) {
+//                val state = GameState(
+//                    left.rect.y / sceneContainer.height,
+//                    right.rect.y / sceneContainer.height,
+//                    Point(ball.x / sceneContainer.width, ball.y / sceneContainer.height),
+//                    velocity,
+//                    scoreLeft,
+//                    scoreRight
+//                )
+//                launchImmediately { backClient?.write(state.toMessage()) }
+//            }
+//        }
 
         // net
         line(x0, 0.0, x0, sceneContainer.height)
@@ -186,20 +186,20 @@ object PongGame : Scene() {
 
 
     override suspend fun SContainer.sceneMain() {
-        val server = createTcpServer(5050, "0.0.0.0")
-
-        server.listen { client ->
-            backClient = client
-            middleText.text = "Client connected. Or should be"
-            while (client.connected) {
-                val dir = client.read()
-                if (dir == 255) {
-                    left -= paddleSpeed
-                } else if (dir == 1) {
-                    left += paddleSpeed
-                }
-            }
-        }
+//        val server = createTcpServer(5050, "0.0.0.0")
+//
+//        server.listen { client ->
+//            backClient = client
+//            middleText.text = "Client connected. Or should be"
+//            while (client.connected) {
+//                val dir = client.read()
+//                if (dir == 255) {
+//                    left -= paddleSpeed
+//                } else if (dir == 1) {
+//                    left += paddleSpeed
+//                }
+//            }
+//        }
 
         this.addFixedUpdater(60.timesPerSecond) {
             if (ball.y > right.rect.y) {
