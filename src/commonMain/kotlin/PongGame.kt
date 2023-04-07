@@ -1,5 +1,7 @@
 import com.soywiz.klock.*
 import com.soywiz.korev.Key.*
+import com.soywiz.korge.input.*
+import com.soywiz.korge.input.MouseEvents.Companion.mouseHitSearch
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.*
@@ -47,10 +49,8 @@ object PongGame : Scene() {
     lateinit var left: Paddle
     lateinit var scoreLeftText: Text
     lateinit var scoreRightText: Text
-    lateinit var middleText: Text
 
     lateinit var ball: Circle
-    var backClient: AsyncClient? = null
 
     lateinit var explosion: Sprite
 
@@ -73,11 +73,6 @@ object PongGame : Scene() {
             x = sceneContainer.width - 100
             y = 50.0
             alignment = TextAlignment.RIGHT
-        }
-        middleText = text("TEXT", 32.0) {
-            x = sceneContainer.width / 2
-            y = 50.0
-            alignment = TextAlignment.CENTER
         }
 
         ball = circle(10.0, Colors.WHITE) {
@@ -142,6 +137,7 @@ object PongGame : Scene() {
             velocity.x = -velocity.x
             velocity.y = Random.nextDouble(2.0, 8.0)
 
+            // start the explosion animation
             explosion.y = ball.y - 125 + ball.radius
             explosion.x = ball.x - 128 - ball.radius
             explosion.playAnimation()
@@ -165,7 +161,7 @@ object PongGame : Scene() {
             }
 
         }
-//
+
 //        this.addFixedUpdater(16.timesPerSecond) {
 //            if (backClient?.connected == true) {
 //                val state = GameState(
@@ -201,7 +197,7 @@ object PongGame : Scene() {
 //            }
 //        }
 
-        this.addFixedUpdater(60.timesPerSecond) {
+        this.addFixedUpdater(16.timesPerSecond) {
             if (ball.y > right.rect.y) {
                 right.rect.y += paddleSpeed
                 // check the boundaries
@@ -212,7 +208,12 @@ object PongGame : Scene() {
             }
         }
 
+        stage.onMove {
+            left.rect.y = it.input.mouse.y
+        }
+
         this.addUpdater {
+
             when {
                 input.keys.pressing(UP) -> {
                     left -= paddleSpeed
